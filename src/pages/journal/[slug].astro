@@ -21,7 +21,7 @@ const { title, date, summary, cover, coverAlt, tags } = post.data;
 const journalUrl = withBase('/journal/');
 ---
 
-<BaseLayout title={title} description={summary} type="article">
+<BaseLayout title={title} description={summary} type="article" image={cover} imageAlt={cover ? coverAlt : undefined}>
   <article class="entry">
     <header class="container container--narrow entry__head">
       <p class="eyebrow eyebrow--sage"><time datetime={date.toISOString()}>{formatDate(date)}</time></p>

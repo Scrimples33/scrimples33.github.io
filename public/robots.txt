@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://annewilliamson.art/sitemap-index.xml

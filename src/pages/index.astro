@@ -46,7 +46,29 @@ const panels = (await getArtworksByCategory()).map((c) => ({
 const posts = (await getPublishedPosts()).slice(0, 3);
 ---
 
-<BaseLayout description="Anne Williamson, portrait and wildlife artist working in colour pencil and watercolour. See the gallery, read the journal, or commission a portrait.">
+<BaseLayout
+  description="Anne Williamson is a self-taught portrait and wildlife artist from Staffordshire, UK, working in colour pencil and watercolour. See the gallery, or commission a portrait of a person or pet."
+  image={anneHero}
+  imageAlt="Anne Williamson standing in front of a huge banyan tree with long hanging roots"
+  jsonLd={[
+    {
+      '@context': 'https://schema.org',
+      '@type': 'WebSite',
+      name: site.name,
+      url: 'https://annewilliamson.art/',
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'Person',
+      name: site.name,
+      jobTitle: 'Portrait and wildlife artist',
+      url: 'https://annewilliamson.art/',
+      image: new URL(anneHero.src, Astro.site).href,
+      address: { '@type': 'PostalAddress', addressRegion: 'Staffordshire', addressCountry: 'GB' },
+      sameAs: [site.instagram, site.facebook].filter(Boolean),
+    },
+  ]}
+>
   <!-- 1. Hero -->
   <section class="hero" aria-labelledby="hero-title">
     <div class="container split split--5-7 hero__grid">

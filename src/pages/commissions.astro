@@ -33,8 +33,11 @@ const mediumLabel = (id: string) => pricing.media.find((m) => m.id === id)?.labe
 ---
 
 <BaseLayout
-  title="Commissions"
-  description="Commission a colour pencil or watercolour portrait from Anne Williamson: how it works, example prices and questions."
+  title="Portrait and Pet Commissions"
+  description="Commission a colour pencil or watercolour portrait of a person or pet from Anne Williamson, an artist in Staffordshire: how it works, example prices and questions."
+  image={art?.data.image}
+  imageAlt={art?.data.imageAlt}
+  imagePosition="attention"
 >
   <!-- 1. Page head -->
   <section class="container c-head">
