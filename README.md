@@ -41,6 +41,7 @@ Saving commits to `main`, and GitHub Actions rebuilds the site in about a minute
 Each artwork has one or more tags, and each tag with at least one picture gets its own tab on the gallery page
 (and a panel on the home page). Tabs follow the order of the list in **Gallery tags**; a tag with no pictures
 is hidden. A picture with several tags shows under each of them. The first tag on a picture sets its colour.
+Each tag can use any of 21 garden colours (picked in Pages CMS); the colours are listed in `src/data/tags.ts`.
 Tag names match however they're typed ("Dying plants" = "dying plants"), and a tag used on a picture but
 missing from the list still gets a tab, at the end.
 

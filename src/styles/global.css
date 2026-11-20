@@ -188,6 +188,26 @@
 [data-tone='yolk'] { --cat: var(--yolk); --cat-soft: var(--yolk-soft); --cat-ink: var(--yolk-ink); }
 [data-tone='sky'] { --cat: var(--sky); --cat-soft: var(--sky-soft); --cat-ink: var(--sky-ink); }
 [data-tone='blossom'] { --cat: var(--blossom); --cat-soft: var(--blossom-soft); --cat-ink: var(--blossom-ink); }
+/* tag-palette:start */
+/* More tag colours (generated). "-soft" is a pale tint of the colour on the page background; "-ink" mixes
+   it with the text colour so labels stay readable (at least 4.5:1) in both light and dark mode. */
+[data-tone='moss'] { --cat: #6F7F3A; --cat-soft: color-mix(in srgb, #6F7F3A 18%, var(--bg)); --cat-ink: color-mix(in srgb, #6F7F3A 88%, var(--text)); }
+[data-tone='fern'] { --cat: #4F8A5B; --cat-soft: color-mix(in srgb, #4F8A5B 18%, var(--bg)); --cat-ink: color-mix(in srgb, #4F8A5B 82%, var(--text)); }
+[data-tone='mint'] { --cat: #6FB3A0; --cat-soft: color-mix(in srgb, #6FB3A0 18%, var(--bg)); --cat-ink: color-mix(in srgb, #6FB3A0 56%, var(--text)); }
+[data-tone='teal'] { --cat: #2F8A86; --cat-soft: color-mix(in srgb, #2F8A86 18%, var(--bg)); --cat-ink: color-mix(in srgb, #2F8A86 84%, var(--text)); }
+[data-tone='cornflower'] { --cat: #5B7FC0; --cat-soft: color-mix(in srgb, #5B7FC0 18%, var(--bg)); --cat-ink: color-mix(in srgb, #5B7FC0 82%, var(--text)); }
+[data-tone='lavender'] { --cat: #9A88C4; --cat-soft: color-mix(in srgb, #9A88C4 18%, var(--bg)); --cat-ink: color-mix(in srgb, #9A88C4 66%, var(--text)); }
+[data-tone='heather'] { --cat: #8E5A86; --cat-soft: color-mix(in srgb, #8E5A86 18%, var(--bg)); --cat-ink: color-mix(in srgb, #8E5A86 80%, var(--text)); }
+[data-tone='rose'] { --cat: #B84A5A; --cat-soft: color-mix(in srgb, #B84A5A 18%, var(--bg)); --cat-ink: color-mix(in srgb, #B84A5A 82%, var(--text)); }
+[data-tone='poppy'] { --cat: #D2553A; --cat-soft: color-mix(in srgb, #D2553A 18%, var(--bg)); --cat-ink: color-mix(in srgb, #D2553A 84%, var(--text)); }
+[data-tone='apricot'] { --cat: #E09A5B; --cat-soft: color-mix(in srgb, #E09A5B 18%, var(--bg)); --cat-ink: color-mix(in srgb, #E09A5B 54%, var(--text)); }
+[data-tone='marigold'] { --cat: #E07B28; --cat-soft: color-mix(in srgb, #E07B28 18%, var(--bg)); --cat-ink: color-mix(in srgb, #E07B28 66%, var(--text)); }
+[data-tone='mustard'] { --cat: #C4A93A; --cat-soft: color-mix(in srgb, #C4A93A 18%, var(--bg)); --cat-ink: color-mix(in srgb, #C4A93A 54%, var(--text)); }
+[data-tone='bark'] { --cat: #8A6A4A; --cat-soft: color-mix(in srgb, #8A6A4A 18%, var(--bg)); --cat-ink: color-mix(in srgb, #8A6A4A 84%, var(--text)); }
+[data-tone='chestnut'] { --cat: #9B4F2E; --cat-soft: color-mix(in srgb, #9B4F2E 18%, var(--bg)); --cat-ink: color-mix(in srgb, #9B4F2E 76%, var(--text)); }
+[data-tone='slate'] { --cat: #6E7780; --cat-soft: color-mix(in srgb, #6E7780 18%, var(--bg)); --cat-ink: color-mix(in srgb, #6E7780 90%, var(--text)); }
+[data-tone='stone'] { --cat: #A39A88; --cat-soft: color-mix(in srgb, #A39A88 18%, var(--bg)); --cat-ink: color-mix(in srgb, #A39A88 62%, var(--text)); }
+/* tag-palette:end */
 
 :root[data-theme='light'] { color-scheme: light; }
 :root[data-theme='dark'] { color-scheme: dark; }
@@ -1567,6 +1587,7 @@ a.cat-chip:hover,
 .ill-wash--yolk { fill: color-mix(in srgb, var(--yolk) calc(30% * var(--wash, 1)), transparent); }
 .ill-wash--sky { fill: color-mix(in srgb, var(--sky) calc(28% * var(--wash, 1)), transparent); }
 .ill-wash--blossom { fill: color-mix(in srgb, var(--blossom) calc(30% * var(--wash, 1)), transparent); }
+.ill-wash--cat { fill: color-mix(in srgb, var(--cat) calc(28% * var(--wash, 1)), transparent); }
 /* Egg shells: the --egg-* colours are only set in dark mode; light mode keeps the soft tints. */
 .ill-egg .ill-wash--hen { fill: var(--egg-brown, color-mix(in srgb, var(--hen) calc(24% * var(--wash, 1)), transparent)); }
 .ill-egg .ill-wash--yolk { fill: var(--egg-cream, color-mix(in srgb, var(--yolk) calc(30% * var(--wash, 1)), transparent)); }

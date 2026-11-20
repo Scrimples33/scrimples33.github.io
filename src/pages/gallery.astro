@@ -11,6 +11,7 @@ import Feather from '../components/illustrations/Feather.astro';
 import Leaf from '../components/illustrations/Leaf.astro';
 import { withBase } from '../lib/url';
 import { getArtworksByTag, type Artwork } from '../lib/content';
+import { toneMotif } from '../data/tags';
 
 // One section (and tab) per tag that has at least one artwork, in the order of the tag list.
 // A picture with several tags appears in each of their sections.
@@ -110,13 +111,13 @@ const leopard = ordered.find((a) => a.id === 'leopard') ?? ordered[0];
           <section class="gallery-section" id={s.id} aria-labelledby={`h-${s.id}`} data-gallery-section data-tone={s.tone}>
             <div class="gallery-section__head">
               <SectionHead title={s.label} id={`h-${s.id}`} />
-              {/* One small line drawing per tag, chosen by the tag's colour (decorative). */}
+              {/* One small line drawing per tag, chosen by and tinted with the tag's colour (decorative). */}
               <span class="gallery-section__motif" aria-hidden="true">
-                {s.tone === 'sage' && <Sprig size={34} />}
-                {s.tone === 'blossom' && <Flower size={44} stem />}
-                {s.tone === 'yolk' && <Egg size={34} tone="cream" tilt={-8} />}
-                {s.tone === 'hen' && <Feather size={22} tilt={14} />}
-                {s.tone === 'sky' && <Leaf size={30} tone="sky" tilt={-20} />}
+                {toneMotif(s.tone) === 'sprig' && <Sprig size={34} />}
+                {toneMotif(s.tone) === 'flower' && <Flower size={44} stem tone={s.tone === 'blossom' ? undefined : 'cat'} />}
+                {toneMotif(s.tone) === 'egg' && <Egg size={34} tone="cream" tilt={-8} />}
+                {toneMotif(s.tone) === 'feather' && <Feather size={22} tilt={14} tone={s.tone === 'hen' ? undefined : 'cat'} />}
+                {toneMotif(s.tone) === 'leaf' && <Leaf size={30} tone={s.tone === 'sky' ? 'sky' : 'cat'} tilt={-20} />}
               </span>
             </div>
             {s.artworks.length === 0 ? (

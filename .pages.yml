@@ -102,11 +102,27 @@ content:
         default: sage
         options:
           values:
-            - { value: sage, label: Green }
-            - { value: hen, label: Russet }
-            - { value: yolk, label: Yellow }
-            - { value: sky, label: Blue }
-            - { value: blossom, label: Pink }
+            - { value: sage, label: Sage green }
+            - { value: hen, label: Hen russet }
+            - { value: yolk, label: Egg-yolk yellow }
+            - { value: sky, label: Duck-egg blue }
+            - { value: blossom, label: Blossom pink }
+            - { value: moss, label: Moss green }
+            - { value: fern, label: Fern green }
+            - { value: mint, label: Mint }
+            - { value: teal, label: Teal }
+            - { value: cornflower, label: Cornflower blue }
+            - { value: lavender, label: Lavender }
+            - { value: heather, label: Heather purple }
+            - { value: rose, label: Rose red }
+            - { value: poppy, label: Poppy red }
+            - { value: apricot, label: Apricot }
+            - { value: marigold, label: Marigold orange }
+            - { value: mustard, label: Mustard }
+            - { value: bark, label: Bark brown }
+            - { value: chestnut, label: Chestnut }
+            - { value: slate, label: Slate grey }
+            - { value: stone, label: Stone }
 
   - name: settings
     label: Site settings

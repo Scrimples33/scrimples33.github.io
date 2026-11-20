@@ -2,7 +2,8 @@
 // Every illustration is a decorative inline SVG: stroke="currentColor" pencil lines with optional
 // soft "wash" fills (classes .ill-wash--* in global.css, which adapt to dark mode).
 
-export type Tone = 'sage' | 'hen' | 'yolk' | 'sky' | 'blossom';
+// 'cat' = the colour of the surrounding tag (var(--cat)), for tags with one of the extra colours.
+export type Tone = 'sage' | 'hen' | 'yolk' | 'sky' | 'blossom' | 'cat';
 export type Size = number | string | undefined;
 
 /** Width/height attributes for an SVG of the given viewBox size. Numbers are px; strings are CSS widths. */
