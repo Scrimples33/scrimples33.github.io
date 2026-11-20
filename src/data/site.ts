@@ -12,7 +12,7 @@ export const site = {
   // Contact form. Make a form at https://formspree.io and paste its address here
   // (it looks like https://formspree.io/f/abcdwxyz). While this is empty, pressing Send
   // opens the visitor's email app instead.
-  formEndpoint: '',
+  formEndpoint: 'https://formspree.io/f/mjywebnz',
 
   // Turn the Shop page on in the main menu once prints are ready to sell.
   shopEnabled: false,
