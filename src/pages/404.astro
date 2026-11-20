@@ -1,0 +1,68 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { withBase } from '../lib/url';
+import Hen from '../components/illustrations/Hen.astro';
+import Feather from '../components/illustrations/Feather.astro';
+---
+
+<BaseLayout title="Page not found">
+  <section class="container container--narrow not-found" aria-labelledby="nf-title">
+    <div class="not-found__art">
+      <Feather class="not-found__feather not-found__feather--1" size={18} tilt={-28} />
+      <Feather class="not-found__feather not-found__feather--2" size={14} tilt={40} tone="yolk" />
+      <Feather class="not-found__feather not-found__feather--3" size={12} tilt={-62} />
+      <Hen class="not-found__hen" size="100%" ground strokeWidth={1.6} />
+    </div>
+    <p class="eyebrow eyebrow--hen">Error 404</p>
+    <h1 id="nf-title">This page seems to have flown the coop</h1>
+    <p class="lede">
+      Sorry, I couldn't find the page you were looking for. It may have moved, or the link may be out of date.
+    </p>
+    <div class="btn-row not-found__buttons">
+      <a class="btn btn--solid" href={withBase('/gallery/')}>View the gallery</a>
+      <a class="btn" href={withBase('/')}>Back to the home page</a>
+    </div>
+    <p class="not-found__more">
+      Or try <a href={withBase('/commissions/')}>commissions</a>, the <a href={withBase('/journal/')}>journal</a>{' '}
+      or <a href={withBase('/contact/')}>get in touch</a>.
+    </p>
+  </section>
+</BaseLayout>
+
+<style>
+  .not-found {
+    padding-top: var(--space-xl);
+    text-align: center;
+  }
+
+  .not-found__art {
+    position: relative;
+    width: min(15rem, 70%);
+    margin: 0 auto var(--space-l);
+    color: var(--text);
+  }
+
+  .not-found__art :global(.not-found__feather) {
+    position: absolute;
+    color: var(--hen-ink);
+  }
+
+  .not-found__art :global(.not-found__feather--1) { top: -8%; right: -6%; }
+  .not-found__art :global(.not-found__feather--2) { top: 12%; right: -22%; color: var(--yolk-ink); }
+  .not-found__art :global(.not-found__feather--3) { top: -16%; right: 14%; }
+
+  .not-found .lede {
+    margin: var(--space-m) auto 0;
+  }
+
+  .not-found__buttons {
+    justify-content: center;
+    margin-top: var(--space-l);
+  }
+
+  .not-found__more {
+    margin-top: var(--space-l);
+    font-size: var(--text-small);
+    color: var(--muted);
+  }
+</style>

@@ -1,0 +1,384 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { site } from '../data/site';
+import { withBase } from '../lib/url';
+import Placeholder from '../components/Placeholder.astro';
+import Flower from '../components/illustrations/Flower.astro';
+
+const enquiryTypes = ['Commission', 'Original artwork', 'Prints', 'Other'];
+const sizes = ['A5', 'A4', 'A3', 'Not sure yet'];
+---
+
+<BaseLayout
+  title="Contact"
+  description="Get in touch with Anne Williamson about a commission, an original artwork, prints, or anything else."
+>
+  <div class="container contact">
+    <div class="split split--5-7 split--top contact__split">
+      {/* Intro and details ------------------------------------------------ */}
+      <div class="contact__intro">
+        <div class="contact__title">
+          <h1>Get in touch</h1>
+          <Flower class="contact__flower" stem size={40} petals={9} />
+        </div>
+        <p class="lede">For commissions, original artwork, prints or anything else.</p>
+
+        <dl class="details">
+          <div class="details__row">
+            <dt>Email</dt>
+            <dd>
+              {site.email ? (
+                <a href={`mailto:${site.email}`} data-mailto>{site.email}</a>
+              ) : (
+                <Placeholder inline prompt="Email address." />
+              )}
+            </dd>
+          </div>
+          <div class="details__row">
+            <dt>Instagram</dt>
+            <dd><a href={site.instagram} rel="noopener">{site.instagramHandle}</a></dd>
+          </div>
+          <div class="details__row">
+            <dt>Facebook</dt>
+            <dd>
+              {site.facebook ? (
+                <a href={site.facebook} rel="noopener">Facebook page</a>
+              ) : (
+                <Placeholder inline prompt="Create a Facebook page and link it here." />
+              )}
+            </dd>
+          </div>
+        </dl>
+
+        <p class="photo-note">
+          Thinking about a commission? Photos of your subject can be sent by email after first contact. Read more about{' '}
+          <a href={withBase('/commissions/')}>how commissions work</a>.
+        </p>
+      </div>
+
+      {/* The form doesn't post anywhere: Send opens the visitor's email app with a message to Anne,
+          built from the boxes below (see the script at the bottom). */}
+      <div class="contact__action">
+            <form class="form contact-form" novalidate data-contact-form>
+              <div class="form__row form__row--2">
+                <div class="form__field">
+                  <label for="cf-name">Your name</label>
+                  <input id="cf-name" type="text" name="name" required autocomplete="name" />
+                </div>
+                <div class="form__field">
+                  <label for="cf-email">Your email</label>
+                  <input id="cf-email" type="email" name="email" required autocomplete="email" />
+                </div>
+              </div>
+
+              <div class="form__field">
+                <label for="cf-type">What is it about?</label>
+                <select id="cf-type" name="enquiry" data-enquiry-type>
+                  {enquiryTypes.map((t) => (
+                    <option value={t}>{t}</option>
+                  ))}
+                </select>
+              </div>
+
+              <fieldset class="commission-fields" data-commission-fields>
+                <legend class="commission-fields__legend">About your commission</legend>
+                <div class="commission-fields__inner">
+                <div class="form__field">
+                  <label for="cf-subject">Who or what would you like drawn?</label>
+                  <input id="cf-subject" type="text" name="commission_subject" placeholder="e.g. our two cats" />
+                </div>
+                <div class="form__row form__row--2 form__row--align">
+                  <div class="form__field">
+                    <label for="cf-size">Preferred size</label>
+                    <select id="cf-size" name="commission_size" data-size>
+                      <option value="">Choose a size</option>
+                      {sizes.map((s) => (
+                        <option value={s}>{s}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div class="form__field">
+                    <label for="cf-date">Ideal date</label>
+                    <input id="cf-date" type="text" name="commission_date" placeholder="A birthday, Christmas, or “no rush”" />
+                  </div>
+                </div>
+                </div>
+              </fieldset>
+
+              <div class="form__field">
+                <label for="cf-message">Message</label>
+                <textarea id="cf-message" name="message" rows="10" required data-message />
+              </div>
+
+              <div class="contact-form__submit">
+                <button class="btn btn--solid" type="submit" disabled={!site.email || undefined}>Send message</button>
+                <p class="form__note">
+                  This opens your email app with the message ready to send. No need to attach photos yet; they can be
+                  sent afterwards.
+                </p>
+              </div>
+              {!site.email && (
+                <Placeholder prompt="Add the email address (email in src/data/site.ts). Until then the Send button is switched off." />
+              )}
+            </form>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+
+<script define:vars={{ email: site.email }}>
+  // 1. Prefill from ?about= and ?details= (links from the gallery and the commissions estimator).
+  //    about=commission (or details on its own) means a commission; anything else is an artwork title.
+  // 2. On Send, open the visitor's email app with a message to Anne built from the form.
+  (function () {
+    var params = new URLSearchParams(location.search);
+    var about = (params.get('about') || '').trim().slice(0, 200);
+    var details = (params.get('details') || '').trim().slice(0, 1000);
+    var isCommission = about.toLowerCase() === 'commission' || (!about && Boolean(details));
+
+    var type = '';
+    var message = '';
+    if (isCommission) {
+      type = 'Commission';
+      message = details ? details + '\n\n' : '';
+    } else if (about === 'Prints') {
+      type = 'Prints';
+    } else if (about) {
+      type = 'Original artwork';
+      message = 'About: ' + about + '\n\n';
+    }
+
+    var form = document.querySelector('[data-contact-form]');
+    if (!form) return;
+    var select = form.querySelector('[data-enquiry-type]');
+    var fields = form.querySelector('[data-commission-fields]');
+    var textarea = form.querySelector('[data-message]');
+    var sizeSelect = form.querySelector('[data-size]');
+
+    var sync = function () {
+      var on = select.value === 'Commission';
+      fields.hidden = !on;
+      fields.disabled = !on;
+    };
+
+    if (type) select.value = type;
+    if (message && !textarea.value) textarea.value = message;
+    // Match the size dropdown to the estimate ("Size: A4").
+    var sizeMatch = /^Size: (.+)$/m.exec(details);
+    if (sizeMatch) {
+      Array.prototype.forEach.call(sizeSelect.options, function (o) {
+        if (o.value === sizeMatch[1].trim()) sizeSelect.value = o.value;
+      });
+    }
+    select.addEventListener('change', sync);
+    sync();
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      if (!email || !form.reportValidity()) return;
+
+      var value = function (name) {
+        var el = form.elements[name];
+        return el && !el.disabled ? String(el.value || '').trim() : '';
+      };
+
+      // The message first, then the contact details and any extra boxes that were filled in.
+      var lines = [value('message'), '', '---', 'Name: ' + value('name'), 'Email: ' + value('email')];
+      lines.push('About: ' + value('enquiry'));
+      if (value('commission_subject')) lines.push('Who or what to draw: ' + value('commission_subject'));
+      if (value('commission_size')) lines.push('Preferred size: ' + value('commission_size'));
+      if (value('commission_date')) lines.push('Ideal date: ' + value('commission_date'));
+
+      var subject = value('enquiry') + ' enquiry from ' + value('name');
+      location.href =
+        'mailto:' + email + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(lines.join('\n'));
+    });
+  })();
+</script>
+
+<style>
+  .contact {
+    padding-top: var(--space-xl);
+  }
+
+  .contact__split {
+    --split-gap: var(--space-xl);
+  }
+
+  @media (min-width: 64em) {
+    .contact__split {
+      --split-gap: 6rem;
+    }
+  }
+
+  .contact__intro .lede {
+    margin-top: var(--space-m);
+  }
+
+  /* Details list ---------------------------------------------------------- */
+  .details {
+    margin-top: var(--space-l);
+    border-top: 1px solid var(--rule);
+  }
+
+  .details__row {
+    display: grid;
+    grid-template-columns: 6.5rem 1fr;
+    gap: var(--space-s);
+    padding-block: 0.85rem;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .details dt {
+    font-size: var(--text-eyebrow);
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--muted);
+    line-height: 2.2;
+  }
+
+  .details dd {
+    margin: 0;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  /* A small flower beside the page title (like the hen beside headings on About). */
+  .contact__title {
+    display: flex;
+    align-items: flex-end;
+    gap: var(--space-s);
+  }
+
+  .contact__title :global(.contact__flower) {
+    flex: none;
+    margin-bottom: 0.3rem;
+    color: var(--blossom-ink);
+  }
+
+  .contact-form button[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .photo-note {
+    margin-top: var(--space-l);
+    font-size: var(--text-small);
+    color: var(--muted);
+    max-width: 46ch;
+  }
+
+  /* Form ------------------------------------------------------------------ */
+  .commission-fields {
+    padding-top: var(--space-m);
+    border-top: 1px solid color-mix(in srgb, var(--sage) 45%, var(--rule));
+    animation: fade-in var(--dur) var(--ease);
+  }
+
+  .commission-fields__inner {
+    display: grid;
+    gap: var(--space-m);
+  }
+
+  .commission-fields[hidden] {
+    display: none;
+  }
+
+  .commission-fields__legend {
+    float: left; /* sits below the hairline rather than on it */
+    width: 100%;
+    margin-bottom: var(--space-s);
+    font-family: var(--font-display);
+    font-size: 1.3rem;
+    font-weight: 500;
+  }
+
+  .commission-fields__legend + * {
+    clear: both;
+  }
+
+  .contact-form__submit {
+    display: grid;
+    gap: var(--space-s);
+    justify-items: start;
+    padding-top: var(--space-xs);
+  }
+
+  /* Email panel (no form endpoint) ---------------------------------------- */
+  .email-panel {
+    padding: clamp(1.5rem, 4vw, 3rem);
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-top: 2px solid var(--blossom);
+  }
+
+  .email-panel__title {
+    font-size: var(--text-h2);
+  }
+
+  .email-panel__text {
+    margin-top: var(--space-s);
+    color: var(--muted);
+    max-width: 52ch;
+  }
+
+  .email-panel__address {
+    margin-block: var(--space-l) var(--space-m);
+    padding-block: var(--space-m);
+    border-block: 1px solid var(--rule);
+    font-family: var(--font-display);
+    font-size: clamp(1.45rem, 4.2vw, 2.1rem);
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+  }
+
+  .email-panel__address a {
+    color: var(--text);
+    text-decoration-color: var(--blossom);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+  }
+
+  .email-panel__address a:hover {
+    color: var(--sage-ink);
+    text-decoration-color: var(--sage);
+  }
+
+  .email-panel__prefill {
+    margin-bottom: var(--space-m);
+    font-size: var(--text-small);
+    color: var(--muted);
+  }
+
+  .email-panel__prefill[hidden] {
+    display: none;
+  }
+
+  .email-panel__include {
+    margin-top: var(--space-l);
+    padding-top: var(--space-m);
+    border-top: 1px solid var(--rule);
+  }
+
+  .email-panel__subhead {
+    font-family: var(--font-display);
+    font-size: 1.3rem;
+    font-weight: 500;
+  }
+
+  .email-panel__include ul {
+    margin-top: var(--space-xs);
+    padding-left: 1.2em;
+    font-size: 0.975rem;
+    color: var(--muted);
+  }
+
+  .email-panel__include li + li {
+    margin-top: 0.25rem;
+  }
+
+  .email-panel__include li::marker {
+    color: var(--hen);
+  }
+</style>

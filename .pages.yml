@@ -1,0 +1,149 @@
+media:
+  - name: posts
+    label: Journal images
+    input: src/assets/posts
+    output: ../../assets/posts
+  - name: artworks
+    label: Artwork images
+    input: src/assets/artworks
+    output: ../../assets/artworks
+
+content:
+  - name: artworks
+    label: Gallery artworks
+    type: collection
+    path: src/content/artworks
+    format: yaml-frontmatter
+    filename: "{primary}.md"
+    view:
+      fields: [title, category, date]
+      sort: date
+      direction: desc
+    fields:
+      - name: title
+        label: Title
+        type: string
+        required: true
+      - name: category
+        label: Gallery section
+        type: select
+        required: true
+        options:
+          values:
+            - { value: botanical, label: Botanical }
+            - { value: portraits, label: Portraits }
+            - { value: pets, label: Pets }
+            - { value: wildlife, label: Wildlife }
+      - name: date
+        label: Date finished
+        type: date
+        required: true
+      - name: medium
+        label: Medium
+        type: string
+        required: true
+        description: "e.g. Colour pencil on pastel board"
+      - name: size
+        label: Size
+        type: string
+        required: false
+        description: "e.g. A3 or 30 x 42 cm"
+      - name: description
+        label: About this piece
+        type: text
+        required: false
+        description: "A few lines shown when someone clicks the picture"
+      - name: image
+        label: Photo of the artwork
+        type: image
+        required: true
+        options:
+          media: artworks
+      - name: imageAlt
+        label: Describe the picture
+        type: string
+        required: true
+        description: "For people who can't see it, e.g. 'Red fox looking over its shoulder'"
+      - name: featured
+        label: Show on the home page
+        type: boolean
+        default: false
+      - name: availability
+        label: Availability
+        type: select
+        required: false
+        default: nfs
+        description: "Shown under the picture. 'Not for sale' shows nothing."
+        options:
+          values:
+            - { value: available, label: Original available }
+            - { value: sold, label: Sold }
+            - { value: commission, label: Private commission }
+            - { value: nfs, label: Not for sale }
+
+  - name: settings
+    label: Site settings
+    type: file
+    path: src/data/settings.json
+    format: json
+    fields:
+      - name: commissionsOpen
+        label: Taking commissions
+        type: boolean
+        default: true
+        description: "Tick when you are open for new commissions"
+      - name: commissionsNote
+        label: Commissions note
+        type: string
+        required: true
+        description: "One line shown on the home and commissions pages, e.g. 'Currently booking, with a wait of about 6 weeks'"
+
+  - name: posts
+    label: Journal posts
+    type: collection
+    path: src/content/posts
+    format: yaml-frontmatter
+    filename: "{year}-{month}-{day}-{primary}.md"
+    view:
+      fields: [title, date, draft]
+      sort: date
+      direction: desc
+    fields:
+      - name: title
+        label: Title
+        type: string
+        required: true
+      - name: date
+        label: Date
+        type: date
+        required: true
+      - name: summary
+        label: Summary
+        type: string
+        required: true
+        description: "One line, shown on cards and link previews"
+      - name: cover
+        label: Cover image
+        type: image
+        required: false
+        options:
+          media: posts
+      - name: coverAlt
+        label: Cover image description
+        type: string
+        required: false
+        description: "Describe the image for people who can't see it. Needed if you add a cover."
+      - name: tags
+        label: Tags
+        type: string
+        list: true
+        required: false
+      - name: draft
+        label: Draft
+        type: boolean
+        default: false
+        description: "Drafts are saved but not shown on the site"
+      - name: body
+        label: Body
+        type: rich-text
+        required: false

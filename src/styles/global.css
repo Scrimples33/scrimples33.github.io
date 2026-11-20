@@ -1,0 +1,1651 @@
+/* ==========================================================================
+   Anne Williamson: "a quiet gallery wall" in a late-summer garden
+   Global tokens, base styles and shared primitives.
+   Page-specific styles belong in each page's own scoped <style> block.
+
+   Contents
+   1. Tokens (colour, type, spacing)
+   2. Reset & base
+   3. Typography
+   4. Layout primitives (containers, stack, split, grid-auto, section, rule)
+   5. Buttons & links
+   6. Art: mat, museum label, availability badge
+   7. Section head
+   8. Prose
+   9. Forms
+   10. Site header
+   11. Site footer
+   12. Utilities, focus & motion
+   13. Nature: tinted bands, cat-chip, squiggle, NatureDivider, illustrations, GardenStrip
+       (placed between 11 and 12 so the utilities still come last)
+   ========================================================================== */
+
+/* 1. Tokens ---------------------------------------------------------------- */
+
+:root {
+  color-scheme: light dark;
+
+  /* Colour (light: the gallery by day) */
+  --bg: #f7f3ec;
+  --surface: #fffdf9;
+  --surface-2: #efe9df;
+  --text: #2b2a27;
+  --muted: #6e6a62;
+  --rule: #e4ddd0;
+  --accent: #3f7366; /* deep sage-teal: links, focus */
+  --accent-ink: #335f55;
+  --warm: #c47e52; /* apricot-russet: tiny details */
+  --overlay: rgba(20, 19, 17, 0.94);
+
+  /* Nature palette: a garden in late summer.
+     Each colour has a stroke/mid tone (illustration lines, dots, chips), a -soft tint (band backgrounds)
+     and an -ink (AA text on --bg, --surface and its own -soft tint). */
+  --sage: #7e9a72;
+  --sage-soft: #e4eadc;
+  --sage-ink: #4c6644;
+  --sage-deep: #3f5d48; /* solid button */
+  --hen: #b5653a;
+  --hen-soft: #f4e1d2;
+  --hen-ink: #94502b;
+  --yolk: #d9a441;
+  --yolk-soft: #f7eccd;
+  --yolk-ink: #8a6418;
+  --sky: #5e9fa0;
+  --sky-soft: #dcedec;
+  --sky-ink: #36696a;
+  --blossom: #d58a94;
+  --blossom-soft: #f7e3e5;
+  --blossom-ink: #a04b59;
+  --mat: #fffcf5; /* warm mat board */
+  --mat-rule: #e3d8c6;
+  --muted-tint: #5f5b53; /* --muted inside tinted bands (AA on every -soft) */
+
+  /* Type */
+  --font-display: 'Cormorant Garamond Variable', 'Cormorant Garamond', Garamond, 'Times New Roman', serif;
+  --font-body: 'Figtree Variable', Figtree, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --text-h1: clamp(2.4rem, 5vw, 3.75rem);
+  --text-h2: clamp(1.9rem, 3.4vw, 2.6rem);
+  --text-h3: 1.45rem;
+  --text-body: 1.0625rem;
+  --text-small: 0.875rem;
+  --text-eyebrow: 0.75rem;
+  --measure: 64ch;
+
+  /* Spacing */
+  --space-2xs: 0.25rem;
+  --space-xs: 0.5rem;
+  --space-s: 1rem;
+  --space-m: 1.5rem;
+  --space-l: 2.5rem;
+  --space-xl: 4rem;
+  --space-2xl: clamp(4.5rem, 9vw, 8rem);
+
+  /* Misc */
+  --radius: 2px;
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+  --dur: 200ms;
+  --mat-pad: clamp(0.75rem, 2.2vw, 1.25rem);
+  --masthead-h: 7.5rem; /* desktop wordmark row; the sticky header offsets by this */
+
+  /* Hand-drawn shapes used as CSS masks (colour comes from background-color, so they theme). */
+  --mask-sprig: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 44 22' fill='none' stroke='black' stroke-width='1.3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 13.2C13 11 26 12 40 9.4'/%3E%3Cpath d='M10.6 12.2C11.8 8.4 15 6.4 18.8 6.6C17.8 10.2 14.8 12.2 10.6 12.2Z'/%3E%3Cpath d='M17.4 11.8C19.4 15 22.6 16.4 26 15.8C24.4 12.6 21.2 11.2 17.4 11.8Z'/%3E%3Cpath d='M24.6 11.2C26 7.6 29.2 5.8 32.6 6.2C31.4 9.6 28.4 11.4 24.6 11.2Z'/%3E%3Cpath d='M40 9.4C38.2 7.6 35.8 7.2 33.8 8.2C35.4 9.8 37.8 10.2 40 9.4Z'/%3E%3C/svg%3E");
+  --mask-squiggle: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 12' preserveAspectRatio='none' fill='none' stroke='black' stroke-width='2.6' stroke-linecap='round'%3E%3Cpath d='M3 8.6C24 5.6 48 5 74 6.4C104 8 138 6.6 162 5C176 4.2 188 4.4 197 5.2'/%3E%3C/svg%3E");
+  --mask-wave: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 16' preserveAspectRatio='none'%3E%3Cpath d='M0 16V9C26 5 52 3.6 84 6.4C116 9.2 140 11.6 176 9C206 6.8 230 4 262 5.4C286 6.4 304 8 320 9V16Z'/%3E%3C/svg%3E");
+}
+
+/* Dark: the same gallery in the evening. Keep the two dark blocks identical. */
+:root[data-theme='dark'] {
+  --bg: #1a1917;
+  --surface: #23221f;
+  --surface-2: #2b2926;
+  --text: #ece6da;
+  --muted: #a59f93;
+  --rule: #34322e;
+  --accent: #8fc0b0;
+  --accent-ink: #a9d3c5;
+  --warm: #dda67c;
+  --overlay: rgba(10, 10, 9, 0.96);
+  --sage: #9db78f;
+  --sage-soft: #232a21;
+  --sage-ink: #b5cca8;
+  --sage-deep: #a9c29b;
+  --hen: #d88a5e;
+  --hen-soft: #2f241d;
+  --hen-ink: #e8a983;
+  --yolk: #e2b65e;
+  --yolk-soft: #2e2919;
+  --yolk-ink: #ebc67a;
+  --sky: #7db9b9;
+  --sky-soft: #1d2a2a;
+  --sky-ink: #9ccdcc;
+  --blossom: #e0a0a9;
+  --blossom-soft: #2f2224;
+  --blossom-ink: #ebb5bc;
+  --mat: #25231f;
+  --mat-rule: #3a3731;
+  --muted-tint: #aba597;
+  --wash: 0.7; /* illustration washes are lighter on the dark wall */
+}
+
+/* No-JS fallback: follow the OS unless light was explicitly chosen. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --bg: #1a1917;
+    --surface: #23221f;
+    --surface-2: #2b2926;
+    --text: #ece6da;
+    --muted: #a59f93;
+    --rule: #34322e;
+    --accent: #8fc0b0;
+    --accent-ink: #a9d3c5;
+    --warm: #dda67c;
+    --overlay: rgba(10, 10, 9, 0.96);
+    --sage: #9db78f;
+    --sage-soft: #232a21;
+    --sage-ink: #b5cca8;
+    --sage-deep: #a9c29b;
+    --hen: #d88a5e;
+    --hen-soft: #2f241d;
+    --hen-ink: #e8a983;
+    --yolk: #e2b65e;
+    --yolk-soft: #2e2919;
+    --yolk-ink: #ebc67a;
+    --sky: #7db9b9;
+    --sky-soft: #1d2a2a;
+    --sky-ink: #9ccdcc;
+    --blossom: #e0a0a9;
+    --blossom-soft: #2f2224;
+    --blossom-ink: #ebb5bc;
+    --mat: #25231f;
+    --mat-rule: #3a3731;
+    --muted-tint: #aba597;
+    --wash: 0.7;
+  }
+}
+
+/* Category colours. Put data-category="botanical|portraits|pets|wildlife" on any element and use
+   var(--cat), var(--cat-soft), var(--cat-ink) inside it. Outside a category they fall back to sage. */
+:root,
+[data-category] {
+  --cat: var(--sage);
+  --cat-soft: var(--sage-soft);
+  --cat-ink: var(--sage-ink);
+}
+[data-category='portraits'] { --cat: var(--blossom); --cat-soft: var(--blossom-soft); --cat-ink: var(--blossom-ink); }
+[data-category='pets'] { --cat: var(--yolk); --cat-soft: var(--yolk-soft); --cat-ink: var(--yolk-ink); }
+[data-category='wildlife'] { --cat: var(--hen); --cat-soft: var(--hen-soft); --cat-ink: var(--hen-ink); }
+
+:root[data-theme='light'] { color-scheme: light; }
+:root[data-theme='dark'] { color-scheme: dark; }
+
+/* 2. Reset & base ---------------------------------------------------------- */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scroll-padding-top: 5rem; /* anchor targets clear the sticky header */
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  line-height: 1.7;
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: clip;
+}
+
+main {
+  flex: 1;
+  display: block;
+}
+
+main:focus {
+  outline: none; /* focused programmatically by the skip link */
+}
+
+img,
+svg,
+video,
+picture {
+  display: block;
+  max-width: 100%;
+}
+
+img {
+  height: auto;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+p,
+ul,
+ol,
+dl,
+figure,
+blockquote {
+  margin: 0;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--accent) 28%, transparent);
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--rule);
+  margin: 0;
+}
+
+/* 3. Typography ------------------------------------------------------------ */
+
+h1,
+h2,
+h3,
+h4 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  line-height: 1.15;
+  letter-spacing: -0.005em;
+  text-wrap: balance;
+  color: var(--text);
+}
+
+h1,
+.h1 {
+  font-size: var(--text-h1);
+  line-height: 1.08;
+  font-weight: 400;
+}
+
+h2,
+.h2 {
+  font-size: var(--text-h2);
+  font-weight: 400;
+}
+
+h3,
+.h3 {
+  font-size: var(--text-h3);
+  font-weight: 500;
+  line-height: 1.25;
+}
+
+h4 {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+a {
+  color: var(--accent-ink);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.22em;
+  transition: color var(--dur) var(--ease), text-decoration-color var(--dur) var(--ease);
+}
+
+a:hover {
+  color: var(--text);
+}
+
+small,
+.small,
+.meta {
+  font-size: var(--text-small);
+}
+
+.meta {
+  color: var(--muted);
+}
+
+/* Small uppercase label. Use at most one per section. */
+.eyebrow {
+  display: block;
+  margin: 0 0 var(--space-s);
+  font-family: var(--font-body);
+  font-size: var(--text-eyebrow);
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  line-height: 1.4;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* Optional colour: .eyebrow--sage|hen|yolk|sky|blossom, or --cat inside a [data-category]. */
+.eyebrow--sage { color: var(--sage-ink); }
+.eyebrow--hen { color: var(--hen-ink); }
+.eyebrow--yolk { color: var(--yolk-ink); }
+.eyebrow--sky { color: var(--sky-ink); }
+.eyebrow--blossom { color: var(--blossom-ink); }
+.eyebrow--cat { color: var(--cat-ink); }
+
+.lede {
+  font-size: 1.2rem;
+  line-height: 1.6;
+  color: var(--muted);
+  max-width: 60ch;
+  text-wrap: pretty;
+}
+
+/* Italic display serif for artwork titles, statements, pull quotes. */
+.display-italic {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 400;
+}
+
+.statement {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(1.6rem, 3vw, 2rem);
+  line-height: 1.35;
+  text-wrap: balance;
+}
+
+/* 4. Layout primitives ----------------------------------------------------- */
+
+.container {
+  width: min(100% - 2rem, 72rem);
+  margin-inline: auto;
+}
+
+.container--narrow {
+  width: min(100% - 2rem, 44rem);
+}
+
+.container--wide {
+  width: min(100% - 2rem, 84rem);
+}
+
+/* Major page section. Stack them: each gets top padding of --space-2xl. */
+.section {
+  padding-block: var(--space-2xl) 0;
+}
+
+/* The footer's top margin supplies the space after the last section. */
+
+/* Centred hairline between major sections, fading at the ends, with a tiny sage sprig at its centre.
+   For other motifs (egg, feather, flower, hen) use the NatureDivider component. */
+.rule {
+  position: relative;
+  display: block;
+  width: min(100% - 2rem, 72rem);
+  height: 22px;
+  margin: calc(var(--space-2xl) - 11px) auto;
+  border: 0;
+  overflow: visible;
+  background: linear-gradient(
+      to right,
+      transparent,
+      var(--rule-line) 12%,
+      var(--rule-line) calc(50% - 34px),
+      transparent calc(50% - 34px),
+      transparent calc(50% + 34px),
+      var(--rule-line) calc(50% + 34px),
+      var(--rule-line) 88%,
+      transparent
+    )
+    center / 100% 1px no-repeat;
+  --rule-line: color-mix(in srgb, var(--sage) 30%, var(--rule));
+}
+
+.rule::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 44px;
+  height: 22px;
+  transform: translateX(-50%);
+  background: var(--sage);
+  -webkit-mask: var(--mask-sprig) center / contain no-repeat;
+  mask: var(--mask-sprig) center / contain no-repeat;
+}
+
+/* Plain hairline when the motif would be too much (e.g. inside a card). */
+.rule--plain {
+  height: 0;
+  margin-block: var(--space-2xl);
+  background: none;
+  border-top: 1px solid var(--rule);
+}
+
+.rule--plain::after {
+  content: none;
+}
+
+/* Vertical rhythm: direct children spaced by --stack-gap (default --space-s). */
+.stack > * + * {
+  margin-block-start: var(--stack-gap, var(--space-s));
+}
+
+.stack--s { --stack-gap: var(--space-xs); }
+.stack--m { --stack-gap: var(--space-m); }
+.stack--l { --stack-gap: var(--space-l); }
+
+/* Responsive auto-fill grid. Override --grid-min / --grid-gap per use. */
+.grid-auto {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--grid-min, 17rem)), 1fr));
+  gap: var(--grid-gap, var(--space-l));
+  align-items: start;
+}
+
+/* Two columns from 48em, stacked below. Modifiers set the ratio. */
+.split {
+  display: grid;
+  gap: var(--split-gap, var(--space-l));
+  align-items: center;
+}
+
+@media (min-width: 48em) {
+  .split {
+    grid-template-columns: 1fr 1fr;
+    gap: var(--split-gap, var(--space-xl));
+  }
+  .split--5-7 { grid-template-columns: 5fr 7fr; }
+  .split--7-5 { grid-template-columns: 7fr 5fr; }
+  .split--4-8 { grid-template-columns: 4fr 8fr; }
+  .split--top { align-items: start; }
+}
+
+.center {
+  text-align: center;
+}
+
+/* 5. Buttons & links ------------------------------------------------------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  padding: 0.8rem 1.5rem;
+  border: 1px solid var(--text);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  line-height: 1.3;
+  text-decoration: none;
+  text-align: center;
+  transition: background-color var(--dur) var(--ease), color var(--dur) var(--ease),
+    border-color var(--dur) var(--ease);
+}
+
+.btn:hover {
+  background: var(--sage-deep);
+  border-color: var(--sage-deep);
+  color: var(--bg);
+}
+
+/* Primary: deep leaf green, warming to russet on hover (both AA with ivory / near-black text). */
+.btn--solid {
+  background: var(--sage-deep);
+  border-color: var(--sage-deep);
+  color: var(--bg);
+}
+
+.btn--solid:hover {
+  background: var(--hen-ink);
+  border-color: var(--hen-ink);
+  color: var(--bg);
+}
+
+:root[data-theme='dark'] .btn--solid:hover {
+  background: var(--hen);
+  border-color: var(--hen);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .btn--solid:hover {
+    background: var(--hen);
+    border-color: var(--hen);
+  }
+}
+
+/* A row of buttons that wraps neatly. */
+.btn-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-s);
+  align-items: center;
+}
+
+.link-arrow {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.35em;
+  font-weight: 500;
+  color: var(--accent-ink);
+  text-decoration: none;
+}
+
+.link-arrow::after {
+  content: '→';
+  display: inline-block;
+  transition: transform var(--dur) var(--ease);
+}
+
+.link-arrow:hover {
+  color: var(--text);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.22em;
+}
+
+.link-arrow:hover::after {
+  transform: translateX(3px);
+}
+
+/* Status line: a 6px dot + note. Use .status-dot--open / --closed. */
+.status-line {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.6em;
+  font-size: var(--text-small);
+  color: var(--muted);
+}
+
+/* A tiny egg (wider at the bottom), not a circle. */
+.status-dot {
+  flex: none;
+  width: 7px;
+  height: 9px;
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  background: var(--muted);
+  transform: translateY(-0.05em);
+}
+
+.status-dot--open,
+.status-dot--available { background: var(--sage); }
+.status-dot--closed,
+.status-dot--commission { background: var(--yolk); }
+.status-dot--sold { background: var(--hen); } /* the gallery "red dot" */
+
+/* 6. Art: mat, museum label ------------------------------------------------ */
+
+.art-figure {
+  display: block;
+}
+
+/* Warm mat board; the art gets a faint bevel line where it meets the mat. */
+.mat {
+  background: var(--mat);
+  padding: var(--mat-pad);
+  border: 1px solid var(--mat-rule);
+}
+
+.mat img,
+.mat svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.mat > img,
+.mat > picture img {
+  outline: 1px solid color-mix(in srgb, var(--mat-rule) 70%, transparent);
+  outline-offset: 0;
+}
+
+/* Fixed-aspect crop inside a mat, e.g. style="--ratio: 4 / 5". */
+.mat--crop img {
+  aspect-ratio: var(--ratio, 4 / 5);
+  object-fit: cover;
+}
+
+.art-label {
+  margin-top: var(--space-s);
+  display: grid;
+  gap: 0.15rem;
+}
+
+.art-label__title {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 1.2rem;
+  line-height: 1.3;
+  color: var(--text);
+}
+
+.art-label__meta {
+  font-size: var(--text-small);
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.art-label__chip {
+  justify-self: start;
+  margin-bottom: 0.25rem;
+}
+
+.art-label .availability {
+  margin-top: 0.2rem;
+}
+
+.availability {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.55em;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--muted);
+}
+
+/* 7. Section head ---------------------------------------------------------- */
+
+.section-head {
+  margin-bottom: var(--space-l);
+  max-width: 44rem;
+}
+
+.section-head__title {
+  font-size: var(--text-h2);
+}
+
+.section-head__intro {
+  margin-top: var(--space-s);
+  color: var(--muted);
+  max-width: 60ch;
+  text-wrap: pretty;
+}
+
+.section-head--center {
+  margin-inline: auto;
+  text-align: center;
+}
+
+.section-head--center .section-head__intro {
+  margin-inline: auto;
+}
+
+/* 8. Prose (Journal, About) ------------------------------------------------ */
+
+.prose {
+  max-width: var(--measure);
+  font-size: var(--text-body);
+  line-height: 1.75;
+}
+
+.prose > * + * {
+  margin-top: 1.1em;
+}
+
+.prose h2 {
+  margin-top: 2em;
+  font-size: clamp(1.6rem, 2.6vw, 2rem);
+}
+
+.prose h3 {
+  margin-top: 1.8em;
+}
+
+.prose h2 + *,
+.prose h3 + * {
+  margin-top: 0.6em;
+}
+
+.prose ul,
+.prose ol {
+  padding-left: 1.3em;
+}
+
+.prose li + li {
+  margin-top: 0.35em;
+}
+
+.prose li::marker {
+  color: var(--warm);
+}
+
+.prose blockquote {
+  padding-left: var(--space-m);
+  border-left: 2px solid var(--sage);
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 1.35rem;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+.prose img {
+  width: 100%;
+  background: var(--surface);
+  padding: var(--mat-pad);
+  border: 1px solid var(--rule);
+}
+
+.prose figure figcaption {
+  margin-top: var(--space-xs);
+  font-size: var(--text-small);
+  color: var(--muted);
+}
+
+.prose hr {
+  margin-block: 2.2em;
+}
+
+.prose code {
+  font-size: 0.9em;
+  padding: 0.1em 0.35em;
+  background: var(--surface-2);
+  border-radius: var(--radius);
+}
+
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-small);
+}
+
+.prose th,
+.prose td {
+  padding: 0.6em 0.8em;
+  border-bottom: 1px solid var(--rule);
+  text-align: left;
+}
+
+.prose th {
+  background: var(--surface-2);
+  font-weight: 500;
+}
+
+/* Optional drop cap: add .prose--dropcap */
+.prose--dropcap > p:first-of-type::first-letter {
+  float: left;
+  margin: 0.08em 0.1em 0 0;
+  font-family: var(--font-display);
+  font-size: 3.6em;
+  line-height: 0.8;
+  color: var(--hen-ink);
+}
+
+/* 9. Forms ----------------------------------------------------------------- */
+
+.form {
+  display: grid;
+  gap: var(--space-m);
+}
+
+.form__row {
+  display: grid;
+  gap: var(--space-m);
+}
+
+@media (min-width: 36em) {
+  .form__row--2 {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.form__field {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.form label,
+.form legend {
+  font-size: var(--text-small);
+  font-weight: 500;
+  color: var(--text);
+}
+
+.form fieldset {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+
+.form input:not([type='checkbox'], [type='radio'], [type='submit'], [type='button']),
+.form select,
+.form textarea {
+  width: 100%;
+  padding: 0.7rem 0.85rem;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  color: var(--text);
+  line-height: 1.5;
+  transition: border-color var(--dur) var(--ease);
+}
+
+.form input:not([type='checkbox'], [type='radio'], [type='submit'], [type='button']):hover,
+.form select:hover,
+.form textarea:hover {
+  border-color: var(--muted);
+}
+
+.form input:focus-visible,
+.form select:focus-visible,
+.form textarea:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+  border-color: var(--accent);
+}
+
+.form textarea {
+  min-height: 9rem;
+  resize: vertical;
+}
+
+/* Ghost text in empty fields: deliberately faint so it never reads as typed text. */
+.form input::placeholder,
+.form textarea::placeholder {
+  color: var(--muted);
+  opacity: 0.45;
+}
+
+/* Text boxes and dropdowns share one height, so side-by-side fields line up. */
+.form input:not([type='checkbox'], [type='radio'], [type='submit'], [type='button']),
+.form select {
+  height: 3.125rem;
+}
+
+.form__row--align {
+  align-items: end;
+}
+
+.form input[type='checkbox'],
+.form input[type='radio'] {
+  accent-color: var(--accent);
+}
+
+.form__hint {
+  font-size: var(--text-small);
+  color: var(--muted);
+}
+
+.form__note {
+  font-size: var(--text-small);
+  color: var(--muted);
+}
+
+/* 10. Site header ---------------------------------------------------------- */
+
+.skip-link {
+  position: absolute;
+  left: var(--space-s);
+  top: -10rem;
+  z-index: 100;
+  padding: 0.6rem 1rem;
+  background: var(--text);
+  color: var(--bg);
+  font-size: var(--text-small);
+  text-decoration: none;
+}
+
+.skip-link:focus {
+  top: var(--space-s);
+}
+
+/* Invisible marker; when it scrolls out of view the header goes compact. */
+.header-sentinel {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 80px;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: var(--bg);
+  border-bottom: 1px solid transparent;
+  transition: border-color var(--dur) var(--ease);
+}
+
+.site-header.is-compact {
+  border-bottom-color: var(--rule);
+}
+
+.masthead {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: var(--space-s);
+  min-height: 3.75rem;
+  padding-block: var(--space-xs);
+}
+
+.wordmark {
+  justify-self: start;
+  display: grid;
+  gap: 0.1rem;
+  color: var(--text);
+  text-decoration: none;
+  line-height: 1.1;
+}
+
+.wordmark:hover {
+  color: var(--text);
+}
+
+.wordmark__name {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
+.wordmark__name-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+/* Tiny hen beside the name on small screens (where the sub-line is hidden). */
+.wordmark__mark {
+  color: var(--hen-ink);
+  transform: translateY(-0.1rem);
+}
+
+/* Very narrow phones: drop the hen so the name, theme toggle and Menu still fit. */
+@media (max-width: 23.75em) {
+  .wordmark__mark {
+    display: none;
+  }
+}
+
+.wordmark__sub {
+  display: none;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* Sprig flourishes either side of the sub-line. */
+.wordmark__sprig {
+  color: var(--sage);
+}
+
+.masthead__tools {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.theme-toggle {
+  display: inline-grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid var(--rule);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text);
+  transition: border-color var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+
+.theme-toggle:hover {
+  border-color: var(--muted);
+}
+
+.theme-toggle svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Show the moon in light mode (go dark), the sun in dark mode (go light). */
+.theme-toggle__sun { display: none; }
+:root[data-theme='dark'] .theme-toggle__sun { display: block; }
+:root[data-theme='dark'] .theme-toggle__moon { display: none; }
+
+.menu-toggle {
+  display: none;
+  align-items: center;
+  gap: 0.5rem;
+  height: 36px;
+  padding: 0 0.85rem;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--text);
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+}
+
+.menu-toggle:hover {
+  border-color: var(--muted);
+}
+
+.menu-toggle__icon {
+  position: relative;
+  width: 14px;
+  height: 9px;
+  border-block: 1px solid currentColor;
+}
+
+.menu-toggle[aria-expanded='true'] .menu-toggle__icon {
+  border-color: transparent;
+}
+
+.menu-toggle[aria-expanded='true'] .menu-toggle__icon::before,
+.menu-toggle[aria-expanded='true'] .menu-toggle__icon::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 3.5px;
+  width: 14px;
+  border-top: 1px solid currentColor;
+  transform: rotate(45deg);
+}
+
+.menu-toggle[aria-expanded='true'] .menu-toggle__icon::after {
+  transform: rotate(-45deg);
+}
+
+.js .menu-toggle {
+  display: inline-flex;
+}
+
+.site-nav__brand {
+  display: none;
+}
+
+.site-nav__list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.25rem 1.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.site-nav__list a {
+  display: inline-block;
+  padding-block: 0.4rem;
+  color: var(--text);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+}
+
+.site-nav__list a:hover {
+  color: var(--accent-ink);
+}
+
+/* Active page: a short hand-drawn russet stroke under the link. */
+.site-nav__list a[aria-current='page'] {
+  position: relative;
+}
+
+.site-nav__list a[aria-current='page']::after {
+  content: '';
+  position: absolute;
+  left: -0.1em;
+  right: -0.1em;
+  bottom: 0.05rem;
+  height: 0.4rem;
+  background: var(--hen);
+  -webkit-mask: var(--mask-squiggle) center / 100% 100% no-repeat;
+  mask: var(--mask-squiggle) center / 100% 100% no-repeat;
+}
+
+/* Mobile: nav is a disclosure panel under the bar (only once JS is running). */
+@media (max-width: 47.999em) {
+  .site-nav {
+    border-top: 1px solid var(--rule);
+    padding-block: var(--space-xs);
+  }
+
+  .js .site-nav {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    max-height: calc(100dvh - 4rem);
+    overflow-y: auto;
+    padding-block: var(--space-xs) var(--space-m);
+    background: var(--bg);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .js .site-nav.is-open {
+    display: block;
+    animation: fade-in var(--dur) var(--ease);
+  }
+
+  .js .site-nav__list {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .js .site-nav__list li + li {
+    border-top: 1px solid var(--rule);
+  }
+
+  .js .site-nav__list a {
+    display: block;
+    padding-block: 0.85rem;
+    font-size: 1.0625rem;
+  }
+
+  .js .site-nav__list a[aria-current='page']::after {
+    right: auto;
+    width: 3.5rem;
+    bottom: 0.45rem;
+  }
+}
+
+/* Desktop: centred masthead, hairline nav row, compact sticky bar. */
+@media (min-width: 48em) {
+  .site-header {
+    top: calc(-1 * var(--masthead-h));
+  }
+
+  .header-sentinel {
+    height: var(--masthead-h);
+  }
+
+  .masthead {
+    grid-template-columns: 1fr auto 1fr;
+    height: var(--masthead-h);
+    padding-block: 0;
+  }
+
+  .masthead::before {
+    content: '';
+  }
+
+  .wordmark {
+    justify-self: center;
+    text-align: center;
+    gap: 0.35rem;
+  }
+
+  .wordmark__name {
+    font-size: 2.1rem;
+  }
+
+  /* The name row stretches to the sub-line's width; centre the name inside it. */
+  .wordmark__name-row {
+    justify-content: center;
+  }
+
+  .wordmark__sub {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.7rem;
+  }
+
+  .wordmark__mark {
+    display: none;
+  }
+
+  .masthead__tools {
+    justify-self: end;
+  }
+
+  .js .menu-toggle {
+    display: none;
+  }
+
+  .site-nav {
+    border-top: 1px solid var(--rule);
+  }
+
+  .site-nav__inner {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    min-height: 3.25rem;
+  }
+
+  .site-nav__list {
+    grid-column: 2;
+    gap: 0.25rem 2rem;
+  }
+
+  .site-nav__brand {
+    display: block;
+    grid-column: 1;
+    grid-row: 1;
+    justify-self: start;
+    font-family: var(--font-display);
+    font-size: 1.3rem;
+    font-weight: 500;
+    color: var(--text);
+    text-decoration: none;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity var(--dur) var(--ease), visibility 0s linear var(--dur);
+  }
+
+  .is-compact .site-nav {
+    border-top-color: transparent;
+  }
+
+  .is-compact .site-nav__inner {
+    grid-template-columns: auto 1fr;
+  }
+
+  .is-compact .site-nav__list {
+    justify-self: end;
+    justify-content: flex-end;
+  }
+
+  .is-compact .site-nav__brand {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity var(--dur) var(--ease), visibility 0s;
+  }
+}
+
+/* 11. Site footer ---------------------------------------------------------- */
+
+/* A soft sage band with a hand-drawn wavy top edge and a garden strip along the bottom. */
+.site-footer {
+  position: relative;
+  margin-top: calc(var(--space-2xl) + 14px);
+  padding-top: var(--space-xl);
+  font-size: var(--text-small);
+  --tint-bg: var(--sage-soft);
+  --muted: var(--muted-tint);
+  --rule: color-mix(in srgb, var(--sage) 32%, var(--sage-soft));
+  background: var(--tint-bg);
+  color: var(--muted);
+}
+
+.site-footer::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 100%;
+  height: 14px;
+  background: var(--tint-bg);
+  -webkit-mask: var(--mask-wave) 0 0 / 640px 100% repeat-x;
+  mask: var(--mask-wave) 0 0 / 640px 100% repeat-x;
+  pointer-events: none;
+}
+
+.site-footer .garden-strip {
+  margin-top: var(--space-m);
+}
+
+.site-footer__grid {
+  display: grid;
+  gap: var(--space-l);
+}
+
+@media (min-width: 48em) {
+  .site-footer__grid {
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: var(--space-xl);
+  }
+}
+
+.site-footer__name {
+  margin-bottom: var(--space-xs);
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.site-footer__heading {
+  margin-bottom: var(--space-s);
+  font-family: var(--font-body);
+  font-size: var(--text-eyebrow);
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.site-footer p + p {
+  margin-top: var(--space-xs);
+}
+
+.site-footer ul {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0;
+  list-style: none;
+}
+
+.site-footer a {
+  color: var(--text);
+  text-decoration: none;
+}
+
+.site-footer a:hover {
+  color: var(--sage-ink);
+  text-decoration: underline;
+  text-decoration-color: var(--sage);
+}
+
+.site-footer__signature {
+  margin-top: var(--space-xl);
+  text-align: center;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 1.35rem;
+  color: var(--sage-ink);
+}
+
+.site-footer__signature a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.site-footer__signature a:hover {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+}
+
+/* 13. Nature: tinted bands, chips, squiggles, dividers, illustrations ------ */
+
+/* Full-width soft background band. Use on a full-bleed wrapper with a .container inside:
+   <section class="section tint tint--sage">…</section>. Alternate tints; never two bands touching. */
+.tint {
+  --tint-bg: var(--sage-soft);
+  --tint-line: var(--sage);
+  --muted: var(--muted-tint);
+  --rule: color-mix(in srgb, var(--tint-line) 32%, var(--tint-bg));
+  background: var(--tint-bg);
+  padding-block: var(--space-xl);
+}
+
+.section.tint {
+  margin-top: var(--space-2xl);
+  padding-block: var(--space-2xl);
+}
+
+.tint--sage { --tint-bg: var(--sage-soft); --tint-line: var(--sage); }
+.tint--hen { --tint-bg: var(--hen-soft); --tint-line: var(--hen); }
+.tint--yolk { --tint-bg: var(--yolk-soft); --tint-line: var(--yolk); }
+.tint--sky { --tint-bg: var(--sky-soft); --tint-line: var(--sky); }
+.tint--blossom { --tint-bg: var(--blossom-soft); --tint-line: var(--blossom); }
+.tint--cat { --tint-bg: var(--cat-soft); --tint-line: var(--cat); }
+
+/* Optional hand-drawn wavy top and bottom edges (adds 14px above and below the band). */
+.tint--wave {
+  position: relative;
+}
+
+.tint--wave::before,
+.tint--wave::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 14px;
+  background: var(--tint-bg);
+  -webkit-mask: var(--mask-wave) 0 0 / 640px 100% repeat-x;
+  mask: var(--mask-wave) 0 0 / 640px 100% repeat-x;
+  pointer-events: none;
+}
+
+.tint--wave::before { bottom: 100%; }
+
+.tint--wave::after {
+  top: 100%;
+  transform: scaleY(-1);
+  -webkit-mask-position: 230px 0;
+  mask-position: 230px 0;
+}
+
+/* Small rounded category label: <span class="cat-chip" data-category="pets">Pets</span>
+   (or inside any [data-category] element). Can be an <a>. */
+.cat-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45em;
+  padding: 0.2em 0.75em 0.2em 0.6em;
+  border: 1px solid color-mix(in srgb, var(--cat) 45%, transparent);
+  border-radius: 999px;
+  background: var(--cat-soft);
+  color: var(--cat-ink);
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  line-height: 1.4;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.cat-chip::before {
+  content: '';
+  width: 6px;
+  height: 8px;
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  background: var(--cat);
+}
+
+a.cat-chip:hover,
+.cat-chip[aria-current],
+.cat-chip[aria-pressed='true'] {
+  background: color-mix(in srgb, var(--cat) 24%, var(--cat-soft));
+  color: var(--text);
+}
+
+/* Hand-drawn underline for one or two words in a heading: <h2>Wild <span class="squiggle">things</span></h2>.
+   Colour: .squiggle--sage|hen|yolk|sky|blossom|cat (default yolk). Keep to one per page area. */
+.squiggle {
+  position: relative;
+  isolation: isolate;
+  white-space: nowrap;
+}
+
+.squiggle::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  left: -0.05em;
+  right: -0.05em;
+  bottom: -0.04em;
+  height: 0.28em;
+  background: var(--squiggle-color, var(--yolk));
+  -webkit-mask: var(--mask-squiggle) center / 100% 100% no-repeat;
+  mask: var(--mask-squiggle) center / 100% 100% no-repeat;
+}
+
+.squiggle--sage { --squiggle-color: var(--sage); }
+.squiggle--hen { --squiggle-color: var(--hen); }
+.squiggle--yolk { --squiggle-color: var(--yolk); }
+.squiggle--sky { --squiggle-color: var(--sky); }
+.squiggle--blossom { --squiggle-color: var(--blossom); }
+.squiggle--cat { --squiggle-color: var(--cat); }
+
+/* NatureDivider component. */
+.nature-divider {
+  --rule-line: color-mix(in srgb, var(--sage) 30%, var(--rule));
+  display: flex;
+  align-items: center;
+  gap: var(--space-s);
+  width: min(100% - 2rem, 72rem);
+  margin: var(--space-2xl) auto;
+}
+
+.nature-divider--tight {
+  margin-block: var(--space-xl);
+}
+
+.nature-divider__line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--rule-line) 30%);
+}
+
+.nature-divider__line:last-child {
+  background: linear-gradient(to left, transparent, var(--rule-line) 30%);
+}
+
+.nature-divider__motif {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.3rem;
+}
+
+.nature-divider__feather {
+  margin-inline: 1rem;
+}
+
+/* Illustrations (src/components/illustrations). Lines are currentColor at a constant screen weight. */
+.ill {
+  flex: none;
+  overflow: visible;
+  stroke-width: var(--ill-stroke, 1.4px);
+}
+
+.ill path,
+.ill circle {
+  vector-effect: non-scaling-stroke;
+}
+
+.ill-soft { stroke-opacity: 0.6; }
+.ill-ghost { stroke-opacity: 0.28; }
+.ill-dot { fill: currentColor; stroke: none; }
+.ill-speckle { fill: var(--hen); opacity: 0.55; }
+
+.ill-wash,
+.ill-fill { stroke: none; }
+.ill-wash--sage { fill: color-mix(in srgb, var(--sage) calc(28% * var(--wash, 1)), transparent); }
+.ill-wash--hen { fill: color-mix(in srgb, var(--hen) calc(24% * var(--wash, 1)), transparent); }
+.ill-wash--yolk { fill: color-mix(in srgb, var(--yolk) calc(30% * var(--wash, 1)), transparent); }
+.ill-wash--sky { fill: color-mix(in srgb, var(--sky) calc(28% * var(--wash, 1)), transparent); }
+.ill-wash--blossom { fill: color-mix(in srgb, var(--blossom) calc(30% * var(--wash, 1)), transparent); }
+.ill-fill--hen { fill: var(--hen); opacity: 0.8; }
+.ill-fill--yolk { fill: var(--yolk); opacity: 0.85; }
+
+/* Line colour helpers for illustrations (set on the illustration or a wrapper). */
+.ill-ink { color: var(--text); }
+.ill-ink--muted { color: var(--muted); }
+.ill-ink--sage { color: var(--sage-ink); }
+.ill-ink--hen { color: var(--hen-ink); }
+.ill-ink--yolk { color: var(--yolk-ink); }
+.ill-ink--sky { color: var(--sky-ink); }
+.ill-ink--blossom { color: var(--blossom-ink); }
+.ill-ink--cat { color: var(--cat-ink); }
+
+/* GardenStrip component (footer). */
+.garden-strip {
+  position: relative;
+  height: 5.75rem;
+  color: var(--sage-ink);
+  overflow: hidden;
+}
+
+.garden-strip__ground {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 40px;
+}
+
+.garden-strip__item {
+  position: absolute;
+  bottom: 5px;
+  left: var(--x);
+  transform: translateX(-50%);
+  line-height: 0;
+}
+
+.garden-strip__hen {
+  bottom: 3px;
+  color: var(--hen-ink);
+}
+
+.garden-strip__egg {
+  bottom: 5px;
+  color: var(--hen-ink);
+}
+
+@media (max-width: 40em) {
+  .garden-strip__item--wide {
+    display: none;
+  }
+}
+
+/* 12. Utilities, focus & motion -------------------------------------------- */
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0 0 0 0) !important;
+  clip-path: inset(50%) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.fade-in {
+  animation: fade-in 250ms var(--ease) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -1,0 +1,62 @@
+---
+// A single broad leaf with a midrib and side veins, on a short stalk. Decorative (aria-hidden).
+// Props:
+//   tone?: 'sage' | 'yolk' | 'hen' | 'sky' | 'blossom'   wash, default 'sage' ('yolk'/'hen' read as autumn)
+//   size?: number | string   px width or CSS width, default 32
+//   tilt?: number            rotation in degrees, default 0
+//   wash?: boolean           default true
+//   strokeWidth?: number     default 1.4
+//   class?: string
+import { leafPath, round, sizeAttrs, type Size, type Tone } from './_util';
+
+interface Props {
+  tone?: Tone;
+  size?: Size;
+  tilt?: number;
+  wash?: boolean;
+  strokeWidth?: number;
+  class?: string;
+}
+
+const { tone = 'sage', size, tilt = 0, wash = true, strokeWidth, class: className } = Astro.props;
+const attrs = sizeAttrs(size, 64, 112, 32);
+const style = [attrs.style, strokeWidth ? `--ill-stroke:${strokeWidth}px` : ''].filter(Boolean).join(';') || undefined;
+
+const L = 84;
+const W = 24;
+const bend = 4;
+// Side veins: from points on the midrib out towards the edge, angled to the tip.
+const veins = [0.2, 0.34, 0.48, 0.62, 0.76].flatMap((t, i) => {
+  const x = L * t;
+  const y = bend * 0.7 * t;
+  const reach = W * (1 - Math.abs(t - 0.4) * 1.1) * 0.8;
+  return [
+    `M${round(x)} ${round(y)}Q${round(x + reach * 0.5)} ${round(y - reach * 0.55)} ${round(x + reach * 0.9)} ${round(y - reach * 0.9)}`,
+    `M${round(x + 2)} ${round(y)}Q${round(x + 2 + reach * 0.5)} ${round(y + reach * 0.5)} ${round(x + 2 + reach * 0.85)} ${round(y + reach * 0.8)}`,
+  ].slice(0, i === 4 ? 1 : 2);
+});
+---
+
+<svg
+  viewBox="0 0 64 112"
+  fill="none"
+  stroke="currentColor"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  aria-hidden="true"
+  focusable="false"
+  class:list={['ill', 'ill-leaf', className]}
+  width={attrs.width}
+  height={attrs.height}
+  style={style}
+>
+  <g transform={tilt ? `rotate(${tilt} 32 56)` : undefined}>
+    <path d="M31 110C31.4 104 31.8 99 32 94" />
+    <g transform="translate(32 96) rotate(-90)">
+      {wash && <path class:list={['ill-wash', `ill-wash--${tone}`]} d={leafPath(L, W, bend)} transform="translate(-1 1.4)" />}
+      <path d={leafPath(L, W, bend)} />
+      <path d={`M0 0Q${L * 0.5} ${bend * 0.35} ${L * 0.86} ${bend * 0.75}`} />
+      <g class="ill-soft">{veins.map((d) => <path d={d} />)}</g>
+    </g>
+  </g>
+</svg>

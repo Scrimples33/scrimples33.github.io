@@ -1,0 +1,458 @@
+---
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Placeholder from '../components/Placeholder.astro';
+import Hen from '../components/illustrations/Hen.astro';
+import NatureDivider from '../components/illustrations/NatureDivider.astro';
+import { withBase } from '../lib/url';
+import dyingRose from '../assets/artworks/dyingrose.jpg';
+import anneWithWilyThoughts from '../assets/about/anne-with-wily-thoughts.jpg';
+import anneHighlyCommended from '../assets/about/anne-highly-commended.jpg';
+import anneWithSelfReflection from '../assets/about/anne-with-self-reflection.jpg';
+import lifeRadishes from '../assets/about/life-radishes.jpg';
+import lifeDarcy from '../assets/about/life-darcy.jpg';
+import lifeDog from '../assets/about/life-dog.jpg';
+import lifeJumper from '../assets/about/life-jumper.jpg';
+
+// Photos for "Away from the easel", each with a short caption.
+const life = [
+  { photo: lifeRadishes, alt: 'Anne in her kitchen holding up a big bunch of freshly pulled radishes', caption: 'Radishes' },
+  { photo: lifeDarcy, alt: 'Darcy, a long-haired dark brown and black cat, lying across an open laptop', caption: 'Darcy' },
+  { photo: lifeDog, alt: 'Hector, a black and tan dog, standing on grass in a sunny field', caption: 'Hector' },
+  { photo: lifeJumper, alt: 'Anne in her kitchen wearing a crocheted granny-square jumper in pink, green, brown and cream', caption: 'Granny-square jumper' },
+];
+
+// Process strip: one entry per stage. To show a real photo, put it in src/assets (e.g.
+// src/assets/process/sketch.jpg), import it above and set `image` and `alt`. Stages without an
+// image show a labelled "photo to add" placeholder. Stages without a `caption` show a "to fill in"
+// placeholder with the `prompt`: write the caption in Anne's words and delete the prompt.
+type Stage = { name: string; caption?: string; prompt?: string; image?: ImageMetadata; alt?: string };
+const stages: Stage[] = [
+  { name: 'Sketch', prompt: 'A line about how a piece starts.' },
+  { name: 'Base layers', prompt: 'A line about the first layers.' },
+  { name: 'Building colour', prompt: 'A line about building up the colour.' },
+  { name: 'Detail', prompt: 'A line about the fine detail.' },
+  {
+    name: 'Finished',
+    prompt: 'A line about finishing a piece.',
+    image: dyingRose,
+    alt: 'Finished colour pencil drawing of a fading crimson and orange rose',
+  },
+];
+
+// Exhibitions and recognition, newest first. `when` can be a year (e.g. '2025') or a short word.
+// `photo` is optional: a photo from the show, with alt text describing what's in it.
+type Recognition = {
+  when: string;
+  title: string;
+  note: string;
+  photo?: ImageMetadata;
+  alt?: string;
+  caption?: string;
+};
+const recognition: Recognition[] = [
+  {
+    when: '2024',
+    title: 'RBSA Gallery, Birmingham',
+    note: 'Self-reflection, a self-portrait in coloured pencils, was shown at the Royal Birmingham Society of Artists gallery.',
+    photo: anneWithSelfReflection,
+    alt: 'Anne standing in the RBSA gallery in front of her framed colour pencil self-portrait',
+    caption: 'Anne with Self-reflection at the RBSA Gallery, 2024.',
+  },
+  {
+    when: '2023',
+    title: 'RBSA Summer Show: Highly Commended',
+    note: 'Wily Thoughts, a red fox in colour pencil, was Highly Commended at the Royal Birmingham Society of Artists Summer Show.',
+    photo: anneHighlyCommended,
+    alt: 'Anne holding a Highly Commended certificate next to her framed colour pencil drawing of a red fox',
+    caption: 'Anne with her Highly Commended certificate and Wily Thoughts, RBSA Summer Show 2023.',
+  },
+  /* TODO (Anne): add more exhibitions, awards and galleries here, newest first. */
+];
+---
+
+<BaseLayout
+  title="About"
+  description="About Anne Williamson, portrait and wildlife artist, working mainly in colour pencil and also in watercolour."
+>
+  {/* Intro ---------------------------------------------------------------- */}
+  <section class="container about-intro" aria-labelledby="about-title">
+    <div class="split split--5-7 split--top">
+      <figure class="about-portrait">
+        <div class="mat">
+          <Image
+            src={anneWithWilyThoughts}
+            alt="Anne at the RBSA Summer Show, holding a glass of wine, standing beside her framed colour pencil drawing of a red fox"
+            width={900}
+            sizes="(min-width: 48em) 30rem, calc(100vw - 2rem)"
+            loading="eager"
+            class="about-portrait__img"
+          />
+        </div>
+        <figcaption class="about-portrait__caption">Anne with Wily Thoughts at the RBSA Summer Show, 2023.</figcaption>
+      </figure>
+
+      <div class="about-text">
+        <h1 id="about-title">Anne Williamson</h1>
+        <p class="lede">
+          Hi, I'm Anne, a self-taught artist from Staffordshire, UK. I love to draw people, pets, wildlife, plants and
+          flowers, working mainly in colour pencil and also in watercolour.
+        </p>
+        <div class="prose">
+          {/* TODO (Anne): replace the Placeholder with your own story, in your own words. */}
+          <Placeholder
+            prompt="A few sentences about how you got into drawing, and what you love to draw. This whole introduction should eventually be in your own words, including the line above."
+            lines={4}
+          />
+          <p>
+            Pencils: Faber-Castell Polychromos, Derwent Lightfast, Caran d'Ache Luminance and Pablo. Surfaces: Bristol
+            vellum, Grafix film, Pastelmat and Strathmore hot-pressed watercolour paper.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {/* Process: a soft sage band ------------------------------------------- */}
+  <section class="process section tint tint--sage tint--wave" aria-labelledby="process-title">
+    <div class="container">
+      <header class="process__head">
+        <h2 id="process-title">From first line to finished piece</h2>
+        <Placeholder class="process__intro" prompt="A sentence or two about how you work." lines={2} />
+      </header>
+
+      <ol class="process__row" role="list" tabindex="0" aria-label="Stages of a drawing">
+        {
+          stages.map((stage, i) => (
+            <li class="process__stage">
+              <div class="mat">
+                {stage.image ? (
+                  <Image
+                    src={stage.image}
+                    alt={stage.alt ?? ''}
+                    width={480}
+                    sizes="(min-width: 64em) 13rem, 70vw"
+                    class="process__img"
+                  />
+                ) : (
+                  <Placeholder kind="photo" prompt={`A photo of the ${stage.name.toLowerCase()} stage.`} />
+                )}
+              </div>
+              <p class="process__name">
+                <span class="process__num">{String(i + 1).padStart(2, '0')}</span>
+                {stage.name}
+              </p>
+              {stage.caption ? (
+                <p class="process__caption">{stage.caption}</p>
+              ) : (
+                <Placeholder class="process__caption" prompt={stage.prompt ?? 'A short caption.'} />
+              )}
+            </li>
+          ))
+        }
+      </ol>
+
+    </div>
+  </section>
+
+  {/* Recognition + away from the easel ---------------------------------- */}
+  <div class="container section">
+    <div class="split split--top about-pair">
+      <section aria-labelledby="recognition-title">
+        <h2 id="recognition-title">Exhibitions &amp; recognition</h2>
+        <ol class="timeline" role="list">
+          {
+            recognition.map((item) => (
+              <li class="timeline__item">
+                <span class="timeline__when">{item.when}</span>
+                <div>
+                  <p class="timeline__title">{item.title}</p>
+                  <p class="timeline__note">{item.note}</p>
+                  {item.photo && (
+                    <figure class="timeline__photo">
+                      <div class="mat">
+                        <Image
+                          src={item.photo}
+                          alt={item.alt ?? ''}
+                          width={720}
+                          sizes="(min-width: 48em) 24rem, calc(100vw - 2rem)"
+                        />
+                      </div>
+                      {item.caption && <figcaption class="timeline__caption">{item.caption}</figcaption>}
+                    </figure>
+                  )}
+                </div>
+              </li>
+            ))
+          }
+        </ol>
+      </section>
+
+      <section aria-labelledby="away-title">
+        <div class="away-head">
+          <h2 id="away-title">Away from the easel</h2>
+          <Hen class="away-head__hen" pose="peck" size={72} ground />
+        </div>
+        <div class="prose away">
+          {/* TODO (Anne): replace the Placeholder with your own write-up. */}
+          <Placeholder
+            prompt="A full write-up about life outside art: gardening, the chickens and pets, family, knitting, travel and anything else."
+            lines={4}
+          />
+          <ul class="life" role="list">
+            {
+              life.map((item) => (
+                <li>
+                  <figure class="life__item">
+                    <div class="mat">
+                      <Image
+                        src={item.photo}
+                        alt={item.alt}
+                        width={480}
+                        widths={[240, 480, 720]}
+                        sizes="(min-width: 48em) 13rem, 45vw"
+                        class="life__img"
+                      />
+                    </div>
+                    <figcaption class="life__caption">
+                      {item.caption}
+                    </figcaption>
+                  </figure>
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <NatureDivider motif="flower" tone="blossom" />
+
+  {/* CTA ------------------------------------------------------------------ */}
+  <section class="container container--narrow about-cta" aria-labelledby="cta-title">
+    <h2 id="cta-title">Commission a portrait</h2>
+    <p class="about-cta__text">Portraits of people and pets, in colour pencil or watercolour.</p>
+    <div class="btn-row about-cta__buttons">
+      <a class="btn btn--solid" href={withBase('/commissions/')}>Commission a portrait</a>
+      <a class="btn" href={withBase('/contact/')}>Get in touch</a>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .about-intro {
+    padding-top: var(--space-xl);
+  }
+
+  .about-portrait {
+    max-width: 30rem;
+  }
+
+  .about-portrait :global(.about-portrait__img),
+  .timeline__photo :global(img) {
+    width: 100%;
+    height: auto;
+  }
+
+  .about-portrait__caption,
+  .timeline__caption {
+    margin-top: var(--space-xs);
+    font-size: var(--text-small);
+    color: var(--muted);
+  }
+
+  @media (min-width: 48em) {
+    .about-text {
+      padding-top: var(--space-l);
+    }
+  }
+
+  .about-text .lede {
+    margin-block: var(--space-m) var(--space-l);
+  }
+
+  /* Process strip --------------------------------------------------------- */
+  .process__head {
+    max-width: 44rem;
+    margin-bottom: var(--space-l);
+  }
+
+  .process__head :global(.process__intro) {
+    margin-top: var(--space-s);
+    max-width: 60ch;
+  }
+
+  .process__row {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: min(72%, 16rem);
+    gap: var(--space-m);
+    margin: 0;
+    padding: 0 0 var(--space-s);
+    list-style: none;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: thin;
+    scrollbar-color: var(--rule) transparent;
+  }
+
+  @media (min-width: 64em) {
+    .process__row {
+      grid-auto-flow: row;
+      grid-template-columns: repeat(5, 1fr);
+      overflow: visible;
+      padding-bottom: 0;
+    }
+  }
+
+  .process__stage {
+    scroll-snap-align: start;
+    min-width: 0;
+  }
+
+  .process__stage :global(.process__img) {
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    object-fit: cover;
+  }
+
+  .process__name {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-xs);
+    margin-top: var(--space-s);
+    font-family: var(--font-display);
+    font-size: 1.3rem;
+    font-weight: 500;
+    line-height: 1.25;
+  }
+
+  .process__num {
+    font-family: var(--font-body);
+    font-size: var(--text-eyebrow);
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    color: var(--hen-ink);
+  }
+
+  .process__stage :global(.process__caption) {
+    margin-top: var(--space-2xs);
+    font-size: var(--text-small);
+    line-height: 1.6;
+    color: var(--muted);
+  }
+
+  /* Timeline -------------------------------------------------------------- */
+  .about-pair {
+    --split-gap: var(--space-xl);
+  }
+
+  .timeline {
+    margin: var(--space-m) 0 0;
+    padding: 0;
+    list-style: none;
+    border-top: 1px solid var(--rule);
+  }
+
+  .timeline__item {
+    display: grid;
+    grid-template-columns: 6.5rem 1fr;
+    gap: var(--space-m);
+    padding-block: var(--space-m);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  @media (max-width: 30em) {
+    .timeline__item {
+      grid-template-columns: 4rem 1fr;
+    }
+  }
+
+  .timeline__when {
+    font-family: var(--font-display);
+    font-size: 1.3rem;
+    line-height: 1.3;
+    color: var(--hen-ink);
+  }
+
+  .timeline__title {
+    font-weight: 500;
+  }
+
+  .timeline__note {
+    margin-top: 0.15rem;
+    color: var(--muted);
+    font-size: 0.975rem;
+  }
+
+  .timeline__photo {
+    margin-top: var(--space-s);
+    max-width: 24rem;
+  }
+
+  .away {
+    margin-top: var(--space-m);
+  }
+
+  /* Photos from everyday life: a 2-column grid of small matted photos. */
+  .life {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-m) var(--space-s);
+    margin: var(--space-l) 0;
+    padding: 0;
+    list-style: none;
+    /* Small photos want a slim mat, not the full gallery one. */
+    --mat-pad: 0.4rem;
+  }
+
+  .life__item {
+    margin: 0;
+  }
+
+  .life__item :global(.life__img) {
+    display: block;
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    height: auto;
+    object-fit: cover;
+  }
+
+  .life__caption {
+    margin-top: var(--space-xs);
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 1.05rem;
+    color: var(--muted);
+  }
+
+  /* The garden and the hens: a small pecking hen beside the heading. */
+  .away-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--space-s);
+  }
+
+  .away-head :global(.away-head__hen) {
+    color: var(--hen-ink);
+  }
+
+  /* CTA ------------------------------------------------------------------- */
+  .about-cta {
+    text-align: center;
+  }
+
+  .about-cta__text {
+    margin-top: var(--space-s);
+    color: var(--muted);
+  }
+
+  .about-cta__buttons {
+    justify-content: center;
+    margin-top: var(--space-l);
+  }
+</style>

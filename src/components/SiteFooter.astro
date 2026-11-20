@@ -1,0 +1,45 @@
+---
+// Warm footer: a soft sage band with a hand-drawn wavy top edge, three columns on desktop,
+// an italic signature, and a garden strip (grass, flowers, a pecking hen) along the very bottom.
+// No props. Styles live in global.css section 11 (GardenStrip in section 13).
+import { withBase } from '../lib/url';
+import { site } from '../data/site';
+import GardenStrip from './illustrations/GardenStrip.astro';
+import Placeholder from './Placeholder.astro';
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="site-footer__grid">
+      <div>
+        <p>© {year} Anne Williamson. All artwork is the copyright of the artist and may not be reproduced without permission.</p>
+      </div>
+      <div>
+        <h2 class="site-footer__heading">Explore</h2>
+        <ul>
+          <li><a href={withBase('/gallery/')}>Gallery</a></li>
+          <li><a href={withBase('/commissions/')}>Commissions</a></li>
+          <li><a href={withBase('/about/')}>About</a></li>
+          <li><a href={withBase('/journal/')}>Journal</a></li>
+          {site.shopEnabled && <li><a href={withBase('/shop/')}>Shop</a></li>}
+        </ul>
+      </div>
+      <div>
+        <h2 class="site-footer__heading">Contact</h2>
+        <ul>
+          <li>
+            {site.email ? <a href={`mailto:${site.email}`}>{site.email}</a> : <Placeholder inline prompt="Email address." />}
+          </li>
+          <li><a href={site.instagram} rel="noopener">Instagram {site.instagramHandle}</a></li>
+          <li>
+            {site.facebook ? <a href={site.facebook} rel="noopener">Facebook</a> : <Placeholder inline prompt="Facebook page link." />}
+          </li>
+          <li><a href={withBase('/contact/')}>Send a message</a></li>
+        </ul>
+      </div>
+    </div>
+    <p class="site-footer__signature"><a href="#top">Back to top ↑</a></p>
+  </div>
+  <GardenStrip />
+</footer>

@@ -1,0 +1,139 @@
+---
+// Journal card: 3:2 cover on a mat (or a quiet panel when there's no cover), date, title, summary.
+// Props:
+//   post: Post        required
+//   level?: 2 | 3     heading level for the title, default 3
+// The whole card is clickable (the title link is stretched over it).
+import { Image } from 'astro:assets';
+import { formatDate } from '../lib/format';
+import { postUrl, type Post } from '../lib/content';
+import Sprig from './illustrations/Sprig.astro';
+
+interface Props {
+  post: Post;
+  level?: 2 | 3;
+}
+const { post, level = 3 } = Astro.props;
+const { title, date, summary, cover, coverAlt } = post.data;
+const Heading = `h${level}` as 'h2' | 'h3';
+---
+
+<article class="post-card">
+  <div class="post-card__media mat" aria-hidden={cover ? undefined : 'true'}>
+    {
+      cover ? (
+        <Image src={cover} alt={coverAlt ?? ''} width={720} sizes="(min-width: 64em) 24rem, (min-width: 40em) 45vw, 100vw" />
+      ) : (
+        <div class="post-card__blank">
+          <Sprig orientation="right" size={64} class="post-card__sprig" />
+          <span>Journal</span>
+        </div>
+      )
+    }
+  </div>
+  <div class="post-card__body">
+    <p class="post-card__date"><time datetime={date.toISOString()}>{formatDate(date)}</time></p>
+    <Heading class="post-card__title"><a href={postUrl(post)}>{title}</a></Heading>
+    <p class="post-card__summary">{summary}</p>
+  </div>
+</article>
+
+<style>
+  .post-card {
+    position: relative;
+    display: grid;
+    gap: var(--space-s);
+    align-content: start;
+  }
+
+  .post-card__media img,
+  .post-card__blank {
+    aspect-ratio: 3 / 2;
+    width: 100%;
+    object-fit: cover;
+    transition: opacity var(--dur) var(--ease);
+  }
+
+  .post-card__blank {
+    display: grid;
+    place-content: center;
+    justify-items: center;
+    gap: var(--space-xs);
+    background: var(--sage-soft);
+  }
+
+  .post-card__blank :global(.post-card__sprig) {
+    color: var(--sage-ink);
+  }
+
+  .post-card__blank span {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 1.35rem;
+    color: var(--sage-ink);
+  }
+
+  /* Date with a small sage egg dot. */
+  .post-card__date {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: var(--text-small);
+    color: var(--muted);
+  }
+
+  .post-card__date::before {
+    content: '';
+    flex: none;
+    width: 6px;
+    height: 8px;
+    border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+    background: var(--sage);
+  }
+
+  .post-card__title {
+    margin-top: -0.35rem;
+    font-size: 1.6rem;
+    font-weight: 400;
+    line-height: 1.2;
+  }
+
+  .post-card__title a {
+    color: var(--text);
+    text-decoration: none;
+  }
+
+  /* Stretch the link over the whole card. */
+  .post-card__title a::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+
+  .post-card__title a:focus-visible {
+    outline: none;
+  }
+
+  .post-card:has(a:focus-visible) {
+    outline: 2px solid var(--accent);
+    outline-offset: 6px;
+  }
+
+  .post-card:hover .post-card__title a {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.18em;
+    text-decoration-color: var(--sage);
+  }
+
+  .post-card:hover .post-card__media img {
+    opacity: 0.92;
+  }
+
+  .post-card__summary {
+    color: var(--muted);
+    font-size: 0.975rem;
+    line-height: 1.65;
+    text-wrap: pretty;
+  }
+</style>

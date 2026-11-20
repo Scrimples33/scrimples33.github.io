@@ -1,0 +1,366 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ArtFigure from '../components/ArtFigure.astro';
+import SectionHead from '../components/SectionHead.astro';
+import Lightbox from '../components/Lightbox.astro';
+import Sprig from '../components/illustrations/Sprig.astro';
+import Flower from '../components/illustrations/Flower.astro';
+import Egg from '../components/illustrations/Egg.astro';
+import Feather from '../components/illustrations/Feather.astro';
+import { withBase } from '../lib/url';
+import { getArtworksByCategory } from '../lib/content';
+
+const sections = await getArtworksByCategory();
+// Lightbox order follows the page: category by category, newest first within each.
+const ordered = sections.flatMap((s) => s.artworks);
+const total = ordered.length;
+---
+
+<BaseLayout
+  title="Gallery"
+  description="Colour pencil and watercolour artwork by Anne Williamson: botanical, portraits, pets and wildlife."
+>
+  <div class="gallery" id="all">
+    <header class="container gallery-head">
+      <h1>Gallery</h1>
+      <p class="lede">
+        Botanical, portraits, pets and wildlife, in colour pencil and watercolour. Choose any piece to see it larger.
+      </p>
+    </header>
+
+    <nav class="subnav" aria-label="Gallery sections" data-subnav>
+      <div class="container subnav__inner">
+        <ul class="subnav__list">
+          <li>
+            <a href="#all" data-subnav-link="all" aria-current="true">
+              All <span class="subnav__count"><span class="visually-hidden">(</span>{total}<span class="visually-hidden"> {total === 1 ? 'work' : 'works'})</span></span>
+            </a>
+          </li>
+          {
+            sections.map((s) => (
+              <li>
+                <a href={`#${s.id}`} data-subnav-link={s.id} data-category={s.id}>
+                  {s.label}{' '}
+                  <span class="subnav__count">
+                    <span class="visually-hidden">(</span>
+                    {s.artworks.length}
+                    <span class="visually-hidden"> {s.artworks.length === 1 ? 'work' : 'works'})</span>
+                  </span>
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+    </nav>
+
+    <div class="container gallery-body">
+      {
+        sections.map((s) => (
+          <section class="gallery-section" id={s.id} aria-labelledby={`h-${s.id}`} data-gallery-section data-category={s.id}>
+            <div class="gallery-section__head">
+              <SectionHead title={s.label} id={`h-${s.id}`} />
+              {/* One small line drawing per category, in that category's colour (decorative). */}
+              <span class="gallery-section__motif" aria-hidden="true">
+                {s.id === 'botanical' && <Sprig size={34} />}
+                {s.id === 'portraits' && <Flower size={44} stem />}
+                {s.id === 'pets' && <Egg size={34} tone="cream" tilt={-8} />}
+                {s.id === 'wildlife' && <Feather size={22} tilt={14} />}
+              </span>
+            </div>
+            {s.artworks.length === 0 ? (
+              <div class="gallery-empty">
+                <p class="gallery-empty__title">No {s.label.toLowerCase()} work here yet.</p>
+                <p class="meta">
+                  Check back soon, or <a href={withBase('/commissions/')}>commission a piece of your own</a>.
+                </p>
+              </div>
+            ) : (
+              <ul class="gallery-grid" role="list">
+                {s.artworks.map((artwork) => (
+                  <li>
+                    <a
+                      class="tile"
+                      href={`#art-${artwork.id}`}
+                      id={`art-${artwork.id}`}
+                      data-lightbox-open={artwork.id}
+                      aria-haspopup="dialog"
+                    >
+                      <ArtFigure
+                        artwork={artwork}
+                        availability
+                        width={900}
+                        sizes="(min-width: 75em) 22rem, (min-width: 40em) 45vw, calc(100vw - 2rem)"
+                      />
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        ))
+      }
+
+      <p class="gallery-cta">
+        Interested in a commission?
+        <a class="link-arrow" href={withBase('/commissions/')}>About commissions</a>
+      </p>
+    </div>
+  </div>
+
+  <Lightbox artworks={ordered} />
+</BaseLayout>
+
+<script>
+  // Sub-nav: highlight the section currently under the sticky bars.
+  const links = Array.from(document.querySelectorAll<HTMLAnchorElement>('[data-subnav-link]'));
+  const sections = Array.from(document.querySelectorAll<HTMLElement>('[data-gallery-section]'));
+  const list = document.querySelector<HTMLElement>('.subnav__list');
+
+  function setActive(id: string) {
+    links.forEach((a) => {
+      const on = a.dataset.subnavLink === id;
+      if (on) a.setAttribute('aria-current', 'true');
+      else a.removeAttribute('aria-current');
+      // Keep the active link visible in the horizontally scrolling row (narrow screens).
+      if (on && list && list.scrollWidth > list.clientWidth) {
+        const left = a.offsetLeft - (list.clientWidth - a.offsetWidth) / 2;
+        list.scrollTo({ left, behavior: 'auto' });
+      }
+    });
+  }
+
+  function update() {
+    const line = window.innerHeight * 0.35;
+    let active = 'all';
+    for (const s of sections) {
+      if (s.getBoundingClientRect().top <= line) active = s.id;
+    }
+    setActive(active);
+  }
+
+  if (sections.length && 'IntersectionObserver' in window) {
+    // A thin band 35% down the viewport: callbacks fire as section edges cross it.
+    const io = new IntersectionObserver(update, { rootMargin: '-35% 0px -64% 0px' });
+    sections.forEach((s) => io.observe(s));
+    update();
+  }
+</script>
+
+<style>
+  .gallery-head {
+    padding-block: var(--space-xl) var(--space-l);
+  }
+
+  .gallery-head h1 {
+    max-width: 18ch;
+  }
+
+  .gallery-head .lede {
+    margin-top: var(--space-m);
+  }
+
+  /* Sticky section nav, just under the sticky header bar. */
+  .subnav {
+    --subnav-top: calc(3.75rem + 1px); /* mobile: masthead bar + bottom hairline */
+    position: sticky;
+    top: var(--subnav-top);
+    z-index: 40;
+    background: var(--bg);
+    border-block: 1px solid var(--rule);
+  }
+
+  @media (min-width: 48em) {
+    .subnav {
+      --subnav-top: calc(3.25rem + 2px); /* desktop: nav row + its two hairlines */
+      border-top-color: transparent;
+    }
+  }
+
+  .subnav__inner {
+    position: relative;
+  }
+
+  .subnav__list {
+    position: relative; /* contains the visually-hidden count text inside the scroller */
+    display: flex;
+    gap: 1.75rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .subnav__list::-webkit-scrollbar {
+    display: none;
+  }
+
+  .subnav__list a {
+    position: relative;
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.4em;
+    padding-block: 0.7rem;
+    white-space: nowrap;
+    color: var(--muted);
+    font-size: 0.9375rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    text-decoration: none;
+  }
+
+  .subnav__list a:hover {
+    color: var(--text);
+  }
+
+  .subnav__list a:focus-visible {
+    outline-offset: -2px;
+  }
+
+  /* Small egg dot in the category colour (sage for "All"). */
+  .subnav__list a[data-category]::before {
+    content: '';
+    flex: none;
+    align-self: center;
+    width: 6px;
+    height: 8px;
+    border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+    background: var(--cat);
+  }
+
+  /* Active: a hand-drawn stroke in the category colour. */
+  .subnav__list a::after {
+    content: '';
+    position: absolute;
+    left: -0.1em;
+    right: -0.1em;
+    bottom: 0.3rem;
+    height: 0.35rem;
+    background: var(--cat);
+    -webkit-mask: var(--mask-squiggle) center / 100% 100% no-repeat;
+    mask: var(--mask-squiggle) center / 100% 100% no-repeat;
+    opacity: 0;
+    transition: opacity var(--dur) var(--ease);
+  }
+
+  .subnav__list a[aria-current='true'] {
+    color: var(--text);
+  }
+
+  .subnav__list a[aria-current='true']::after {
+    opacity: 1;
+  }
+
+  .subnav__count {
+    font-size: 0.75rem;
+    font-weight: 400;
+    font-variant-numeric: tabular-nums;
+    color: var(--muted);
+  }
+
+  /* Sections */
+  .gallery-body {
+    padding-top: var(--space-xl);
+  }
+
+  .gallery-section {
+    scroll-margin-top: 3.25rem; /* + html scroll-padding: clears header bar and sub-nav */
+  }
+
+  .gallery-section + .gallery-section {
+    margin-top: var(--space-2xl);
+    padding-top: var(--space-xl);
+    border-top: 1px solid color-mix(in srgb, var(--cat) 35%, var(--rule));
+  }
+
+  /* Section head with its category motif to the right (bottom-aligned with the title). */
+  .gallery-section__head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--space-m);
+    margin-bottom: var(--space-l);
+  }
+
+  .gallery-section__head :global(.section-head) {
+    margin-bottom: 0;
+  }
+
+  .gallery-section__head :global(.section-head__title) {
+    color: var(--text);
+  }
+
+  .gallery-section__motif {
+    flex: none;
+    color: var(--cat-ink);
+    line-height: 0;
+    padding-bottom: 0.25rem;
+  }
+
+  .gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr));
+    gap: var(--space-l);
+    align-items: start;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  @media (min-width: 75em) {
+    .gallery-grid {
+      gap: var(--space-xl) var(--space-l);
+    }
+  }
+
+  .tile {
+    display: block;
+    color: inherit;
+    text-decoration: none;
+    scroll-margin-top: 3.25rem;
+  }
+
+  .tile :global(.mat img) {
+    transition: opacity var(--dur) var(--ease);
+  }
+
+  .tile:hover :global(.mat img) {
+    opacity: 0.92;
+  }
+
+  .tile:hover :global(.art-label__title) {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+    text-decoration-color: var(--cat);
+  }
+
+  .gallery-empty {
+    padding: var(--space-l) var(--space-m);
+    border: 1px solid color-mix(in srgb, var(--cat) 40%, var(--rule));
+    background: var(--cat-soft);
+    --muted: var(--muted-tint);
+    max-width: 36rem;
+  }
+
+  .gallery-empty__title {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 1.35rem;
+    line-height: 1.35;
+    margin-bottom: var(--space-2xs);
+  }
+
+  .gallery-cta {
+    margin-top: var(--space-2xl);
+    padding-top: var(--space-l);
+    border-top: 1px solid var(--rule);
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-xs) var(--space-s);
+    align-items: baseline;
+    color: var(--muted);
+  }
+</style>

@@ -1,0 +1,541 @@
+---
+// Commission price estimator. All numbers and the price formula come from
+// src/data/commissions.ts (`pricing` + `estimate`); the pricing object is handed
+// to the browser as JSON, so nothing is duplicated here.
+// Hidden when JavaScript is off.
+// Props: id?: string (id for the panel, default 'estimator')
+import { pricing, estimate, surfacesFor, formatPrice, pricesNote } from '../data/commissions';
+import Placeholder from './Placeholder.astro';
+import { withBase } from '../lib/url';
+
+interface Props {
+  id?: string;
+}
+const { id = 'estimator' } = Astro.props;
+
+const d = pricing.defaults;
+const initial = estimate(pricing, d);
+const contact = withBase('/contact/');
+const initialHref = `${contact}?about=commission&details=${encodeURIComponent(initial.summary)}`;
+const defaultSurfaces = surfacesFor(pricing, d.medium).map((s) => s.id);
+// Escape "<" so the JSON can never close its <script> early.
+const json = JSON.stringify(pricing).replace(/</g, '\\u003c');
+---
+
+<div class="estimator" id={id} data-estimator data-contact={contact}>
+  <script type="application/json" data-pricing set:html={json} />
+  <form class="estimator__form" novalidate>
+    <div class="estimator__fields">
+      <fieldset class="field">
+        <legend class="field__legend">Medium</legend>
+        <div class="seg seg--even">
+          {
+            pricing.media.map((m) => (
+              <label class="seg__opt">
+                <input type="radio" name="medium" value={m.id} checked={m.id === d.medium} />
+                <span class="seg__face">{m.label}</span>
+              </label>
+            ))
+          }
+        </div>
+      </fieldset>
+
+      <fieldset class="field">
+        <legend class="field__legend">Surface</legend>
+        <div class="seg">
+          {
+            pricing.surfaces.map((s) => (
+              <label class="seg__opt" hidden={!defaultSurfaces.includes(s.id)}>
+                <input
+                  type="radio"
+                  name="surface"
+                  value={s.id}
+                  checked={s.id === d.surface}
+                  disabled={!defaultSurfaces.includes(s.id)}
+                />
+                <span class="seg__face">{s.label}</span>
+              </label>
+            ))
+          }
+        </div>
+        <p class="field__note" data-surface-note hidden></p>
+      </fieldset>
+
+      <fieldset class="field">
+        <legend class="field__legend">Size</legend>
+        <div class="seg seg--even">
+          {
+            pricing.sizes.map((s) => (
+              <label class="seg__opt">
+                <input type="radio" name="size" value={s.id} checked={s.id === d.size} />
+                <span class="seg__face">
+                  <span class="seg__main">{s.label}</span>
+                  <span class="seg__sub">{s.dimensions}</span>
+                </span>
+              </label>
+            ))
+          }
+        </div>
+      </fieldset>
+
+      <fieldset class="field">
+        <legend class="field__legend">Subject</legend>
+        <div class="seg seg--even">
+          {
+            pricing.subjects.map((s) => (
+              <label class="seg__opt">
+                <input type="radio" name="subject" value={s.id} checked={s.id === d.subject} />
+                <span class="seg__face">{s.label}</span>
+              </label>
+            ))
+          }
+        </div>
+      </fieldset>
+
+      <fieldset class="field">
+        <legend class="field__legend">Number of subjects</legend>
+        <div class="stepper">
+          <button type="button" class="stepper__btn" data-step="-1" aria-label="One fewer subject">
+            <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M3 8h10" /></svg>
+          </button>
+          <input
+            class="stepper__input"
+            type="number"
+            name="count"
+            min="1"
+            max={pricing.maxSubjects}
+            step="1"
+            value={d.count}
+            inputmode="numeric"
+            aria-label="Number of subjects"
+          />
+          <button type="button" class="stepper__btn" data-step="1" aria-label="One more subject">
+            <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M3 8h10M8 3v10" /></svg>
+          </button>
+          <span class="stepper__hint">Up to {pricing.maxSubjects} in one piece</span>
+        </div>
+      </fieldset>
+
+      <fieldset class="field">
+        <legend class="field__legend">Background</legend>
+        <div class="seg seg--even">
+          {
+            pricing.backgrounds.map((b) => (
+              <label class="seg__opt">
+                <input type="radio" name="background" value={b.id} checked={b.id === d.background} />
+                <span class="seg__face">{b.label}</span>
+              </label>
+            ))
+          }
+        </div>
+      </fieldset>
+
+      <fieldset class="field">
+        <legend class="field__legend">Frame</legend>
+        <div class="seg seg--even">
+          {
+            pricing.frames.map((f) => (
+              <label class="seg__opt">
+                <input type="radio" name="frame" value={f.id} checked={f.id === d.frame} />
+                <span class="seg__face">{f.label}</span>
+              </label>
+            ))
+          }
+        </div>
+      </fieldset>
+    </div>
+
+    <div class="estimator__result">
+      <p class="estimator__label">Your estimate</p>
+      <p class="estimator__price" aria-live="polite" aria-atomic="true">
+        <span class="estimator__from">from</span>
+        <span data-total>{formatPrice(initial.total)}</span>
+      </p>
+      {pricesNote && <Placeholder inline prompt={pricesNote} />}
+      <p class="estimator__small">Estimate only, not a quote.</p>
+      <a class="btn btn--solid estimator__cta" href={initialHref} data-request>Request this commission</a>
+    </div>
+  </form>
+</div>
+
+<script>
+  import { estimate, surfacesFor, surfaceText, formatPrice, type Pricing } from '../data/commissions';
+
+  function init(root: HTMLElement) {
+    const raw = root.querySelector('script[data-pricing]')?.textContent;
+    const form = root.querySelector('form');
+    if (!raw || !form) return;
+    const p = JSON.parse(raw) as Pricing;
+    const contact = root.dataset.contact ?? '/contact/';
+
+    const totalEl = root.querySelector<HTMLElement>('[data-total]')!;
+    const link = root.querySelector<HTMLAnchorElement>('[data-request]')!;
+    const note = root.querySelector<HTMLElement>('[data-surface-note]')!;
+    const count = form.querySelector<HTMLInputElement>('input[name="count"]')!;
+    const minus = form.querySelector<HTMLButtonElement>('[data-step="-1"]')!;
+    const plus = form.querySelector<HTMLButtonElement>('[data-step="1"]')!;
+
+    const checked = (name: string) =>
+      form.querySelector<HTMLInputElement>(`input[name="${name}"]:checked`)?.value ?? '';
+
+    const readCount = () => {
+      const n = Math.round(Number(count.value));
+      return Number.isFinite(n) && n >= 1 ? Math.min(p.maxSubjects, n) : 1;
+    };
+
+    // Only offer surfaces that suit the chosen medium.
+    function filterSurfaces() {
+      const medium = checked('medium');
+      const ok = surfacesFor(p, medium);
+      const ids = ok.map((s) => s.id);
+      const radios = form!.querySelectorAll<HTMLInputElement>('input[name="surface"]');
+      radios.forEach((r) => {
+        const show = ids.includes(r.value);
+        r.disabled = !show;
+        if (!show) r.checked = false;
+        const label = r.closest('label');
+        if (label) label.hidden = !show;
+      });
+      if (!checked('surface')) {
+        const first = Array.from(radios).find((r) => !r.disabled);
+        if (first) first.checked = true;
+      }
+      const mediumLabel = p.media.find((m) => m.id === medium)?.label;
+      if (ok.length === 1 && mediumLabel) {
+        note.textContent = `${mediumLabel} is always on ${surfaceText(ok[0])}.`;
+        note.hidden = false;
+      } else {
+        note.hidden = true;
+      }
+    }
+
+    function update() {
+      const n = readCount();
+      minus.disabled = n <= 1;
+      plus.disabled = n >= p.maxSubjects;
+      const result = estimate(p, {
+        medium: checked('medium'),
+        surface: checked('surface'),
+        size: checked('size'),
+        subject: checked('subject'),
+        count: n,
+        background: checked('background'),
+        frame: checked('frame'),
+      });
+      const price = formatPrice(result.total);
+      if (totalEl.textContent !== price) totalEl.textContent = price;
+      link.href = `${contact}?about=commission&details=${encodeURIComponent(result.summary)}`;
+    }
+
+    form.addEventListener('change', (e) => {
+      const t = e.target as HTMLInputElement;
+      if (t.name === 'medium') filterSurfaces();
+      if (t.name === 'count') count.value = String(readCount());
+      update();
+    });
+    count.addEventListener('input', update);
+    [minus, plus].forEach((btn) =>
+      btn.addEventListener('click', () => {
+        const next = Math.min(p.maxSubjects, Math.max(1, readCount() + Number(btn.dataset.step)));
+        count.value = String(next);
+        update();
+        // Keep focus somewhere useful if the button just became disabled.
+        if (btn.disabled) count.focus();
+      }),
+    );
+    form.addEventListener('submit', (e) => e.preventDefault());
+
+    filterSurfaces();
+    update();
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-estimator]').forEach(init);
+</script>
+
+<style>
+  /* Without JavaScript the estimator can't work: hide it. */
+  :global(html:not(.js)) .estimator {
+    display: none;
+  }
+
+  /* A white card; on the Commissions page it sits on a soft yolk band. */
+  .estimator {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    padding: clamp(1.25rem, 4vw, 3rem);
+  }
+
+  .estimator__form {
+    display: grid;
+    gap: var(--space-l);
+  }
+
+  @media (min-width: 56em) {
+    .estimator__form {
+      grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+      gap: 0;
+    }
+    .estimator__fields {
+      padding-right: clamp(var(--space-l), 4vw, var(--space-xl));
+    }
+    .estimator__result {
+      padding-left: clamp(var(--space-l), 4vw, var(--space-xl));
+      border-left: 1px solid var(--rule);
+      align-self: start;
+      position: sticky;
+      top: 5.5rem;
+    }
+  }
+
+  .estimator__fields {
+    display: grid;
+    gap: var(--space-m);
+    min-width: 0;
+  }
+
+  /* Fieldsets */
+  .field {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    min-width: 0;
+  }
+
+  .field__legend {
+    float: left; /* lets the legend sit in normal flow like a label */
+    width: 100%;
+    padding: 0;
+    margin-bottom: 0.6rem;
+    font-size: var(--text-small);
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    color: var(--text);
+  }
+
+  .field__legend + * {
+    clear: both;
+  }
+
+  .field__note {
+    margin-top: 0.5rem;
+    font-size: 0.8125rem;
+    color: var(--muted);
+  }
+
+  [hidden] {
+    display: none !important;
+  }
+
+  /* Segmented radio groups: real radios, styled as quiet rectangular segments. */
+  .seg {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .seg--even {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 4.75rem), 1fr));
+  }
+
+  .seg__opt {
+    position: relative;
+    flex: 1 1 auto;
+    display: flex;
+  }
+
+  .seg__opt input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  .seg__face {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.1rem;
+    min-height: 2.75rem;
+    padding: 0.6rem clamp(0.4rem, 1.5vw, 1rem);
+    border: 1px solid color-mix(in srgb, var(--muted) 38%, transparent);
+    border-radius: var(--radius);
+    color: var(--muted);
+    font-size: 0.9375rem;
+    line-height: 1.3;
+    text-align: center;
+    transition: border-color var(--dur) var(--ease), background-color var(--dur) var(--ease),
+      color var(--dur) var(--ease);
+  }
+
+  .seg__main {
+    color: inherit;
+  }
+
+  .seg__sub {
+    font-size: 0.75rem;
+    color: var(--muted);
+    letter-spacing: 0.01em;
+  }
+
+  @media (max-width: 30em) {
+    .seg__sub {
+      font-size: 0.6875rem;
+      white-space: nowrap;
+      letter-spacing: 0;
+    }
+  }
+
+  .seg__opt:hover .seg__face {
+    border-color: var(--muted);
+    color: var(--text);
+  }
+
+  .seg__opt input:checked + .seg__face {
+    background: var(--sage-soft);
+    border-color: var(--sage-deep);
+    color: var(--text);
+  }
+
+  .seg__opt input:focus-visible + .seg__face {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  /* Stepper */
+  .stepper {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .stepper__btn {
+    display: inline-grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    padding: 0;
+    border: 1px solid color-mix(in srgb, var(--muted) 38%, transparent);
+    border-radius: var(--radius);
+    background: transparent;
+    color: var(--text);
+    transition: border-color var(--dur) var(--ease), opacity var(--dur) var(--ease);
+  }
+
+  .stepper__btn svg {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.25;
+    stroke-linecap: round;
+  }
+
+  .stepper__btn:hover:not(:disabled) {
+    border-color: var(--muted);
+  }
+
+  .stepper__btn:disabled {
+    opacity: 0.35;
+    cursor: default;
+  }
+
+  .stepper__input {
+    width: 3.5rem;
+    height: 2.75rem;
+    padding: 0;
+    border: 1px solid var(--text);
+    border-radius: var(--radius);
+    background: var(--surface);
+    color: var(--text);
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    line-height: 1;
+    text-align: center;
+    font-variant-numeric: lining-nums;
+    appearance: textfield;
+    -moz-appearance: textfield;
+  }
+
+  .stepper__input::-webkit-outer-spin-button,
+  .stepper__input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  .stepper__input:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  .stepper__hint {
+    margin-left: 0.5rem;
+    font-size: 0.8125rem;
+    color: var(--muted);
+  }
+
+  /* Result */
+  .estimator__result {
+    display: grid;
+    gap: 0.75rem;
+    justify-items: start;
+    padding-top: var(--space-l);
+    border-top: 1px solid var(--rule);
+  }
+
+  @media (min-width: 56em) {
+    .estimator__result {
+      padding-top: 0;
+      border-top: 0;
+    }
+  }
+
+  .estimator__label {
+    font-size: var(--text-eyebrow);
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .estimator__price {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+    margin-top: -0.25rem;
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: clamp(3.25rem, 7vw, 4.75rem);
+    line-height: 1;
+    letter-spacing: -0.01em;
+    font-variant-numeric: lining-nums;
+    color: var(--text);
+  }
+
+  .estimator__from {
+    font-style: italic;
+    font-size: 0.42em;
+    color: var(--muted);
+  }
+
+  .estimator__small {
+    font-size: 0.8125rem;
+    line-height: 1.55;
+    color: var(--muted);
+    max-width: 34ch;
+  }
+
+  .estimator__cta {
+    margin-top: var(--space-xs);
+  }
+
+  @media (max-width: 30em) {
+    .estimator__cta {
+      width: 100%;
+    }
+  }
+</style>

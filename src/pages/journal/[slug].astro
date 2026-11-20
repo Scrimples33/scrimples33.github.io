@@ -1,0 +1,222 @@
+---
+import { Image } from 'astro:assets';
+import { render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import NatureDivider from '../../components/illustrations/NatureDivider.astro';
+import { getPublishedPosts, postUrl } from '../../lib/content';
+import { formatDate } from '../../lib/format';
+import { withBase } from '../../lib/url';
+
+export async function getStaticPaths() {
+  const posts = await getPublishedPosts(); // newest first
+  return posts.map((post, i) => ({
+    params: { slug: post.id },
+    props: { post, newer: posts[i - 1], older: posts[i + 1] },
+  }));
+}
+
+const { post, newer, older } = Astro.props;
+const { Content } = await render(post);
+const { title, date, summary, cover, coverAlt, tags } = post.data;
+const journalUrl = withBase('/journal/');
+---
+
+<BaseLayout title={title} description={summary} type="article">
+  <article class="entry">
+    <header class="container container--narrow entry__head">
+      <p class="eyebrow eyebrow--sage"><time datetime={date.toISOString()}>{formatDate(date)}</time></p>
+      <h1>{title}</h1>
+      <p class="lede">{summary}</p>
+    </header>
+
+    {
+      cover && (
+        <div class="container entry__cover">
+          <div class="mat">
+            <Image src={cover} alt={coverAlt ?? ''} width={1600} sizes="(min-width: 74rem) 72rem, 100vw" loading="eager" />
+          </div>
+        </div>
+      )
+    }
+
+    <div class="container container--narrow">
+      <div class="prose prose--dropcap entry__body">
+        <Content />
+      </div>
+
+      {
+        tags.length > 0 && (
+          <p class="entry__tags">
+            <span class="entry__tags-label">Filed under</span>
+            {tags.map((tag, i) => (
+              <>
+                <a href={`${journalUrl}?tag=${encodeURIComponent(tag)}`}>{tag}</a>
+                {i < tags.length - 1 && <span aria-hidden="true">·</span>}
+              </>
+            ))}
+          </p>
+        )
+      }
+    </div>
+  </article>
+
+  <NatureDivider motif="feather" tone="hen" tight class="entry-divider" />
+
+  <nav class="container container--narrow entry-nav" aria-label="More from the journal">
+    {
+      (older || newer) && (
+        <ul class="entry-nav__list" role="list">
+          <li class="entry-nav__item">
+            {older && (
+              <a href={postUrl(older)} rel="prev">
+                <span class="entry-nav__dir">← Older</span>
+                <span class="entry-nav__title">{older.data.title}</span>
+              </a>
+            )}
+          </li>
+          <li class="entry-nav__item entry-nav__item--next">
+            {newer && (
+              <a href={postUrl(newer)} rel="next">
+                <span class="entry-nav__dir">Newer →</span>
+                <span class="entry-nav__title">{newer.data.title}</span>
+              </a>
+            )}
+          </li>
+        </ul>
+      )
+    }
+    <p class="entry-nav__back"><a href={journalUrl}>← Back to the journal</a></p>
+  </nav>
+</BaseLayout>
+
+<style>
+  .entry__head {
+    padding-block: var(--space-xl) var(--space-l);
+  }
+
+  .entry__head .lede {
+    margin-top: var(--space-m);
+  }
+
+  .entry__cover {
+    margin-bottom: var(--space-xl);
+  }
+
+  /* The mat hugs the image; tall covers are capped so the title stays in view. */
+  .entry__cover .mat {
+    width: fit-content;
+    max-width: 100%;
+    margin-inline: auto;
+  }
+
+  .entry__cover img {
+    width: auto;
+    max-width: 100%;
+    max-height: 80vh;
+  }
+
+  .entry__body :global(h2) {
+    font-family: var(--font-display);
+  }
+
+  .entry__body :global(p > em:only-child) {
+    color: var(--muted);
+  }
+
+  .entry__tags {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-2xs) var(--space-xs);
+    margin-top: var(--space-xl);
+    padding-top: var(--space-m);
+    border-top: 1px solid var(--rule);
+    font-size: var(--text-small);
+    color: var(--muted);
+  }
+
+  .entry__tags-label {
+    margin-right: var(--space-xs);
+    font-size: var(--text-eyebrow);
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  .entry__tags a {
+    color: var(--text);
+    text-transform: capitalize;
+  }
+
+  .entry__tags a:hover {
+    color: var(--sage-ink);
+  }
+
+  .entry-nav {
+    margin-top: 0;
+  }
+
+  :global(.entry-divider) {
+    max-width: 44rem;
+  }
+
+  .entry-nav__list {
+    display: grid;
+    gap: var(--space-m);
+    margin: 0;
+    padding: 0 0 var(--space-m);
+    border-bottom: 1px solid var(--rule);
+    list-style: none;
+  }
+
+  @media (min-width: 36em) {
+    .entry-nav__list {
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-l);
+    }
+
+    .entry-nav__item--next {
+      text-align: right;
+    }
+  }
+
+  .entry-nav__item:empty {
+    display: none;
+  }
+
+  @media (min-width: 36em) {
+    .entry-nav__item:empty {
+      display: block;
+    }
+  }
+
+  .entry-nav a {
+    display: grid;
+    gap: 0.2rem;
+    text-decoration: none;
+    color: var(--text);
+  }
+
+  .entry-nav__dir {
+    font-size: var(--text-small);
+    color: var(--muted);
+  }
+
+  .entry-nav__title {
+    font-family: var(--font-display);
+    font-size: 1.35rem;
+    line-height: 1.25;
+    text-wrap: balance;
+  }
+
+  .entry-nav a:hover .entry-nav__title {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.18em;
+  }
+
+  .entry-nav__back {
+    margin-top: var(--space-m);
+    font-size: var(--text-small);
+  }
+</style>

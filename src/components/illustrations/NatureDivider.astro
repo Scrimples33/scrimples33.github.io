@@ -1,0 +1,48 @@
+---
+// Centred section divider: two hairlines with a small hand-drawn motif in the middle.
+// A warmer alternative to <hr class="rule">. Decorative (aria-hidden); spacing matches .rule.
+// Props:
+//   motif?: 'sprig' | 'egg' | 'eggs' | 'feather' | 'flower' | 'hen'   default 'sprig'
+//   tone?: 'sage' | 'hen' | 'yolk' | 'sky' | 'blossom'   colour of the motif line, default 'sage'
+//   tight?: boolean   smaller vertical margin (--space-xl instead of --space-2xl)
+//   class?: string
+import Sprig from './Sprig.astro';
+import Egg from './Egg.astro';
+import Feather from './Feather.astro';
+import Flower from './Flower.astro';
+import Hen from './Hen.astro';
+import type { Tone } from './_util';
+
+interface Props {
+  motif?: 'sprig' | 'egg' | 'eggs' | 'feather' | 'flower' | 'hen';
+  tone?: Tone;
+  tight?: boolean;
+  class?: string;
+}
+
+const { motif = 'sprig', tone = 'sage', tight = false, class: className } = Astro.props;
+---
+
+<div
+  class:list={['nature-divider', `ill-ink--${tone}`, { 'nature-divider--tight': tight }, className]}
+  aria-hidden="true"
+>
+  <span class="nature-divider__line"></span>
+  <span class="nature-divider__motif">
+    {motif === 'sprig' && <Sprig orientation="right" size={64} />}
+    {motif === 'egg' && <Egg size={18} tilt={-8} />}
+    {
+      motif === 'eggs' && (
+        <>
+          <Egg size={15} tilt={-12} tone="cream" speckles={false} />
+          <Egg size={18} tone="brown" />
+          <Egg size={15} tilt={10} tone="blue" speckles={false} />
+        </>
+      )
+    }
+    {motif === 'feather' && <Feather size={14} tilt={64} class="nature-divider__feather" />}
+    {motif === 'flower' && <Flower size={30} />}
+    {motif === 'hen' && <Hen size={52} pose="peck" />}
+  </span>
+  <span class="nature-divider__line"></span>
+</div>

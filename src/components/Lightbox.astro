@@ -1,0 +1,620 @@
+---
+// Full-viewport artwork viewer for the gallery.
+// Props:
+//   artworks: Artwork[]   every artwork, in the order prev/next should follow
+// Opening: any element with data-lightbox-open="<artwork id>" (the gallery tiles are
+// <a href="#art-<id>" data-lightbox-open="<id>">). Deep links: /gallery/#art-<id> opens it on load;
+// the hash follows the current artwork (history.replaceState) and is cleared on close.
+// Controls: prev/next, close, ←/→/Esc, swipe (pointer events, 40px), click on empty stage closes.
+import { getImage } from 'astro:assets';
+import { categories } from '../data/categories';
+import { availabilityLabels, type Artwork } from '../lib/content';
+import { formatMonthYear } from '../lib/format';
+import { withBase } from '../lib/url';
+
+interface Props {
+  artworks: Artwork[];
+}
+
+const { artworks } = Astro.props;
+const categoryLabel = Object.fromEntries(categories.map((c) => [c.id, c.label])) as Record<string, string>;
+
+const items = await Promise.all(
+  artworks.map(async ({ id, data }) => {
+    const img = await getImage({ src: data.image, width: 2000, widths: [800, 1200, 1600, 2000] });
+    const width = Number(img.attributes.width ?? data.image.width);
+    const height = Number(img.attributes.height ?? data.image.height);
+    return {
+      id,
+      title: data.title,
+      category: categoryLabel[data.category] ?? data.category,
+      categoryId: data.category,
+      description: data.description,
+      date: formatMonthYear(data.date),
+      medium: data.medium,
+      size: data.size ?? '',
+      availability: data.availability,
+      availabilityLabel: availabilityLabels[data.availability],
+      enquire: data.availability === 'available' ? withBase(`/contact/?about=${encodeURIComponent(data.title)}`) : '',
+      src: img.src,
+      srcset: img.srcSet.attribute,
+      ratio: width && height ? width / height : 1,
+      alt: data.imageAlt,
+    };
+  }),
+);
+
+const total = items.length;
+const chevron = (d: string) =>
+  `<svg viewBox="0 0 24 48" width="24" height="48" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${d}"/></svg>`;
+---
+
+{
+  total > 0 && (
+    <dialog class="lb" aria-labelledby="lb-title" data-lightbox>
+      <div class="lb__bar">
+        <button class="lb__close" type="button" aria-label="Close" autofocus data-lb-close>
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" aria-hidden="true">
+            <path d="M5 5l14 14M19 5L5 19" />
+          </svg>
+        </button>
+        <button class="lb__nav lb__nav--prev" type="button" aria-label="Previous artwork" data-lb-prev set:html={chevron('M17 6 7 24l10 18')} />
+        <p class="lb__counter" aria-hidden="true">
+          <span data-lb-index>1</span> / {total}
+        </p>
+        <button class="lb__nav lb__nav--next" type="button" aria-label="Next artwork" data-lb-next set:html={chevron('M7 6l10 18-10 18')} />
+      </div>
+
+      <div class="lb__layout">
+        <div class="lb__stage" data-lb-stage>
+          <img class="lb__img" data-lb-img alt="" decoding="async" sizes="(min-width: 60em) calc(100vw - 33rem), 100vw" />
+        </div>
+
+        <div class="lb__panel">
+          <div class="lb__info" data-lb-info>
+            <p class="eyebrow eyebrow--cat" data-lb-category />
+            <h2 class="lb__title" id="lb-title" data-lb-title />
+            <p class="lb__desc" data-lb-desc />
+            <dl class="lb__meta">
+              <div>
+                <dt>Date</dt>
+                <dd data-lb-date />
+              </div>
+              <div>
+                <dt>Medium</dt>
+                <dd data-lb-medium />
+              </div>
+              <div data-lb-size-row>
+                <dt>Size</dt>
+                <dd data-lb-size />
+              </div>
+              <div>
+                <dt>Availability</dt>
+                <dd>
+                  <span class="lb__avail">
+                    <span class="status-dot" aria-hidden="true" data-lb-dot />
+                    <span data-lb-availability />
+                  </span>
+                </dd>
+              </div>
+            </dl>
+            <a class="btn lb__enquire" href="#" data-lb-enquire>Enquire about this piece</a>
+          </div>
+        </div>
+      </div>
+
+      <p class="visually-hidden" aria-live="polite" aria-atomic="true" data-lb-status />
+      <script type="application/json" data-lb-data set:html={JSON.stringify(items).replace(/</g, '\\u003c')} />
+    </dialog>
+  )
+}
+
+<script>
+  type Item = {
+    id: string;
+    title: string;
+    category: string;
+    categoryId: string;
+    description: string;
+    date: string;
+    medium: string;
+    size: string;
+    availability: 'available' | 'sold' | 'commission' | 'nfs';
+    availabilityLabel: string;
+    enquire: string;
+    src: string;
+    srcset: string;
+    ratio: number;
+    alt: string;
+  };
+
+  const dialog = document.querySelector<HTMLDialogElement>('[data-lightbox]');
+
+  if (dialog && typeof dialog.showModal === 'function') {
+    const items: Item[] = JSON.parse(dialog.querySelector('[data-lb-data]')?.textContent || '[]');
+    const byId = new Map(items.map((item, i) => [item.id, i]));
+    const q = <T extends HTMLElement = HTMLElement>(sel: string) => dialog.querySelector<T>(sel)!;
+
+    const img = q<HTMLImageElement>('[data-lb-img]');
+    const stage = q('[data-lb-stage]');
+    const info = q('[data-lb-info]');
+    const el = {
+      index: q('[data-lb-index]'),
+      category: q('[data-lb-category]'),
+      title: q('[data-lb-title]'),
+      desc: q('[data-lb-desc]'),
+      date: q('[data-lb-date]'),
+      medium: q('[data-lb-medium]'),
+      sizeRow: q('[data-lb-size-row]'),
+      size: q('[data-lb-size]'),
+      dot: q('[data-lb-dot]'),
+      availability: q('[data-lb-availability]'),
+      enquire: q<HTMLAnchorElement>('[data-lb-enquire]'),
+      status: q('[data-lb-status]'),
+    };
+    const root = document.documentElement;
+    const preloaded = new Set<string>();
+    let current = -1;
+    let opener: HTMLElement | null = null;
+
+    const tileFor = (id: string) => document.querySelector<HTMLElement>(`[data-lightbox-open="${CSS.escape(id)}"]`);
+    const wrap = (i: number) => (i + items.length) % items.length;
+
+    function preload(i: number) {
+      const item = items[wrap(i)];
+      if (!item || preloaded.has(item.id)) return;
+      preloaded.add(item.id);
+      const pre = new Image();
+      pre.decoding = 'async';
+      pre.sizes = img.sizes;
+      if (item.srcset) pre.srcset = item.srcset;
+      pre.src = item.src;
+    }
+
+    function render(i: number) {
+      const item = items[i];
+      current = i;
+
+      // Fade: hide, swap, reveal once the new image has loaded.
+      img.classList.add('is-loading');
+      img.style.setProperty('--ratio', String(item.ratio));
+      img.alt = item.alt;
+      if (item.srcset) img.srcset = item.srcset;
+      else img.removeAttribute('srcset');
+      img.src = item.src;
+      if (img.complete && img.naturalWidth) img.classList.remove('is-loading');
+
+      el.index.textContent = String(i + 1);
+      el.category.textContent = item.category;
+      info.dataset.category = item.categoryId; // colour-codes the eyebrow (var(--cat-ink))
+      el.title.textContent = item.title;
+      el.desc.textContent = item.description;
+      el.desc.hidden = !item.description;
+      el.date.textContent = item.date;
+      el.medium.textContent = item.medium;
+      el.size.textContent = item.size;
+      el.sizeRow.hidden = !item.size;
+      el.availability.textContent = item.availabilityLabel;
+      el.dot.className = `status-dot status-dot--${item.availability}`;
+      el.dot.hidden = item.availability === 'nfs';
+      el.enquire.hidden = !item.enquire;
+      if (item.enquire) el.enquire.href = item.enquire;
+      el.status.textContent = `${item.title}, ${i + 1} of ${items.length}`;
+
+      info.classList.remove('is-changing');
+      void info.offsetWidth; // restart the fade
+      info.classList.add('is-changing');
+      dialog!.querySelector('.lb__panel')?.scrollTo(0, 0);
+
+      history.replaceState(history.state, '', `#art-${item.id}`);
+      preload(i + 1);
+      preload(i - 1);
+    }
+
+    img.addEventListener('load', () => img.classList.remove('is-loading'));
+    img.addEventListener('error', () => img.classList.remove('is-loading'));
+
+    function lockScroll(lock: boolean) {
+      if (lock) {
+        const gap = window.innerWidth - root.clientWidth;
+        root.style.overflow = 'hidden';
+        if (gap > 0) document.body.style.paddingRight = `${gap}px`;
+      } else {
+        root.style.overflow = '';
+        document.body.style.paddingRight = '';
+      }
+    }
+
+    function open(i: number, from?: HTMLElement | null) {
+      render(i);
+      if (!dialog!.open) {
+        opener = from ?? null;
+        lockScroll(true);
+        dialog!.showModal();
+      }
+    }
+
+    const go = (step: number) => {
+      if (dialog!.open && items.length > 1) render(wrap(current + step));
+    };
+
+    dialog.addEventListener('close', () => {
+      lockScroll(false);
+      history.replaceState(history.state, '', location.pathname + location.search);
+      const item = items[current];
+      const target = (item && tileFor(item.id)) || opener;
+      opener = null;
+      target?.focus();
+    });
+
+    // Tiles (and any other opener on the page).
+    document.addEventListener('click', (e) => {
+      const me = e as MouseEvent;
+      if (me.button !== 0 || me.metaKey || me.ctrlKey || me.shiftKey || me.altKey) return;
+      const trigger = (e.target as Element).closest<HTMLElement>('[data-lightbox-open]');
+      if (!trigger) return;
+      const i = byId.get(trigger.dataset.lightboxOpen || '');
+      if (i === undefined) return;
+      e.preventDefault();
+      open(i, trigger);
+    });
+
+    if (items.length < 2) dialog.querySelectorAll<HTMLElement>('.lb__nav').forEach((b) => (b.hidden = true));
+
+    q('[data-lb-close]').addEventListener('click', () => dialog.close());
+    q('[data-lb-prev]').addEventListener('click', () => go(-1));
+    q('[data-lb-next]').addEventListener('click', () => go(1));
+
+    dialog.addEventListener('keydown', (e) => {
+      if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey) return;
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        go(-1);
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        go(1);
+      }
+    });
+
+    // Swipe (touch/pen) on the stage; a click on empty stage space closes.
+    let start: { x: number; y: number; id: number } | null = null;
+    let swiped = false;
+    stage.addEventListener('pointerdown', (e) => {
+      swiped = false;
+      start = e.pointerType === 'mouse' ? null : { x: e.clientX, y: e.clientY, id: e.pointerId };
+    });
+    stage.addEventListener('pointerup', (e) => {
+      if (!start || e.pointerId !== start.id) return;
+      const dx = e.clientX - start.x;
+      const dy = e.clientY - start.y;
+      start = null;
+      if (Math.abs(dx) >= 40 && Math.abs(dx) > Math.abs(dy) * 1.2) {
+        swiped = true;
+        go(dx < 0 ? 1 : -1);
+      }
+    });
+    stage.addEventListener('pointercancel', () => (start = null));
+    stage.addEventListener('click', (e) => {
+      if (swiped) {
+        swiped = false;
+        return;
+      }
+      if (e.target === stage) dialog.close();
+    });
+
+    // Deep links.
+    function openFromHash() {
+      const m = /^#art-(.+)$/.exec(decodeURIComponent(location.hash));
+      if (!m) return;
+      const i = byId.get(m[1]);
+      if (i !== undefined) open(i, tileFor(m[1]));
+    }
+    window.addEventListener('hashchange', openFromHash);
+    openFromHash();
+  }
+</script>
+
+<style>
+  .lb {
+    /* Controls sit on the overlay, which is dark in both themes. */
+    --on-overlay: #ece6da;
+    --on-overlay-muted: #a59f93;
+    --panel-w: 22rem;
+
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: var(--overlay);
+    color: var(--text);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .lb::backdrop {
+    background: rgba(20, 19, 17, 0.94);
+    background: var(--overlay, rgba(20, 19, 17, 0.94));
+  }
+
+  .lb[open] {
+    animation: lb-in var(--dur) var(--ease);
+  }
+
+  @keyframes lb-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  /* Top bar (mobile): prev · counter · next on the left, close on the right. */
+  .lb__bar {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: auto auto auto 1fr;
+    align-items: center;
+    height: 3.25rem;
+    padding-inline: 0.25rem;
+    background: var(--overlay);
+    color: var(--on-overlay);
+  }
+
+  .lb__bar button {
+    display: inline-grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--on-overlay-muted);
+    transition: color var(--dur) var(--ease);
+  }
+
+  .lb__bar button[hidden] {
+    display: none;
+  }
+
+  .lb__bar button:hover {
+    color: var(--on-overlay);
+  }
+
+  .lb__bar button:focus-visible {
+    outline-offset: -2px;
+  }
+
+  .lb__close {
+    grid-column: 4;
+    grid-row: 1;
+    justify-self: end;
+  }
+
+  .lb__nav :global(svg) {
+    width: 14px;
+    height: 28px;
+  }
+
+  .lb__counter {
+    min-width: 3.5rem;
+    font-size: var(--text-small);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.08em;
+    text-align: center;
+    color: var(--on-overlay-muted);
+  }
+
+  /* Stage + info panel */
+  .lb__layout {
+    display: grid;
+    min-height: calc(100% - 3.25rem);
+  }
+
+  .lb__stage {
+    display: grid;
+    place-items: center;
+    padding: var(--space-xs) var(--space-s) var(--space-m);
+    touch-action: pan-y pinch-zoom;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  .lb__img {
+    --max-h: 68vh;
+    width: min(100%, calc(var(--max-h) * var(--ratio, 1)));
+    height: auto;
+    aspect-ratio: var(--ratio, 1);
+    max-height: var(--max-h);
+    object-fit: contain;
+    transition: opacity 220ms var(--ease);
+    -webkit-user-drag: none;
+  }
+
+  @supports (height: 1dvh) {
+    .lb__img { --max-h: 68dvh; }
+  }
+
+  .lb__img.is-loading {
+    opacity: 0;
+    transition-duration: 0s;
+  }
+
+  .lb__panel {
+    background: var(--bg);
+    padding: var(--space-l) var(--space-s) var(--space-xl);
+  }
+
+  .lb__info {
+    max-width: 34rem;
+    margin-inline: auto;
+  }
+
+  .lb__info.is-changing {
+    animation: lb-in 220ms var(--ease);
+  }
+
+  .lb__info .eyebrow {
+    margin-bottom: var(--space-xs);
+  }
+
+  .lb__title {
+    font-style: italic;
+    font-size: clamp(1.9rem, 3vw, 2.3rem);
+    line-height: 1.15;
+  }
+
+  .lb__desc {
+    margin-top: var(--space-s);
+    color: var(--muted);
+    line-height: 1.65;
+    text-wrap: pretty;
+  }
+
+  .lb__meta {
+    margin-top: var(--space-m);
+    border-top: 1px solid color-mix(in srgb, var(--cat) 45%, var(--rule));
+    font-size: var(--text-small);
+  }
+
+  .lb__meta > div {
+    display: grid;
+    grid-template-columns: 7.5rem 1fr;
+    gap: var(--space-s);
+    padding-block: 0.6rem;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .lb__meta > div[hidden] {
+    display: none;
+  }
+
+  .lb__meta dt {
+    color: var(--muted);
+  }
+
+  .lb__meta dd {
+    margin: 0;
+    min-width: 0;
+    overflow-wrap: break-word;
+    text-wrap: pretty;
+  }
+
+  .lb__avail {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.55em;
+  }
+
+  .lb__avail .status-dot[hidden] {
+    display: none;
+  }
+
+  .lb__enquire {
+    margin-top: var(--space-m);
+  }
+
+  .lb__enquire[hidden] {
+    display: none;
+  }
+
+  /* Desktop: image fills the left, label panel on the right; chevrons at the screen edges. */
+  @media (min-width: 60em) {
+    .lb {
+      overflow: hidden;
+    }
+
+    .lb__bar {
+      display: contents;
+    }
+
+    .lb__bar button,
+    .lb__counter {
+      position: fixed;
+      z-index: 2;
+    }
+
+    .lb__bar .lb__close {
+      top: 1rem;
+      right: 1rem;
+      color: var(--muted);
+    }
+
+    .lb__bar .lb__close:hover {
+      color: var(--text);
+    }
+
+    .lb__counter {
+      top: 1.6rem;
+      left: 2rem;
+      margin: 0;
+      text-align: left;
+    }
+
+    .lb__bar .lb__nav {
+      top: 50%;
+      width: 4rem;
+      height: 7rem;
+      transform: translateY(-50%);
+    }
+
+    .lb__nav--prev {
+      left: 0.75rem;
+    }
+
+    .lb__nav--next {
+      right: calc(var(--panel-w) + 0.75rem);
+    }
+
+    .lb__nav :global(svg) {
+      width: 22px;
+      height: 44px;
+    }
+
+    .lb__layout {
+      grid-template-columns: 1fr var(--panel-w);
+      height: 100%;
+      min-height: 0;
+    }
+
+    .lb__stage {
+      padding: 6vh 5.5rem;
+      min-height: 0;
+    }
+
+    .lb__img {
+      --max-h: 88vh;
+    }
+
+    @supports (height: 1dvh) {
+      .lb__img { --max-h: 88dvh; }
+    }
+
+    .lb__panel {
+      display: flex;
+      flex-direction: column;
+      justify-content: safe center;
+      overflow-y: auto;
+      padding: 4.5rem var(--space-l) var(--space-l);
+    }
+
+    .lb__info {
+      max-width: none;
+      margin: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .lb[open],
+    .lb__info.is-changing {
+      animation: none;
+    }
+
+    .lb__img {
+      transition: none;
+    }
+  }
+</style>

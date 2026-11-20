@@ -1,0 +1,28 @@
+---
+// Tiny availability line with a small egg-shaped dot: available = sage, commission = yolk,
+// sold = russet (the gallery "red dot").
+// Props:
+//   status: 'available' | 'sold' | 'commission' | 'nfs'   ('nfs' renders nothing)
+//   class?: string   extra classes on the wrapper
+// Renders <span class="availability"><span class="status-dot status-dot--{status}"></span>Label</span>.
+// Labels come from availabilityLabels in src/lib/content.ts (reuse them in the lightbox).
+import { availabilityLabels, type Availability } from '../lib/content';
+
+interface Props {
+  status: Availability;
+  class?: string;
+}
+
+const { status, class: className } = Astro.props;
+
+const label = status === 'nfs' ? null : availabilityLabels[status];
+---
+
+{
+  label && (
+    <span class:list={['availability', className]}>
+      <span class:list={['status-dot', `status-dot--${status}`]} aria-hidden="true" />
+      {label}
+    </span>
+  )
+}

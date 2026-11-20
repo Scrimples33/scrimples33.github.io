@@ -1,0 +1,415 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SectionHead from '../components/SectionHead.astro';
+import ArtFigure from '../components/ArtFigure.astro';
+import PriceEstimator from '../components/PriceEstimator.astro';
+import Faq from '../components/Faq.astro';
+import Placeholder from '../components/Placeholder.astro';
+import NatureDivider from '../components/illustrations/NatureDivider.astro';
+import HatchStage from '../components/illustrations/HatchStage.astro';
+import { withBase } from '../lib/url';
+import { settings, getArtworks } from '../lib/content';
+import {
+  steps,
+  pricing,
+  faqs,
+  surfacesFor,
+  surfaceText,
+} from '../data/commissions';
+
+const startHref = withBase('/contact/?about=commission');
+const open = settings.commissionsOpen;
+
+// One quiet image beside the heading: a past commission.
+const works = await getArtworks();
+const art =
+  works.find((w) => w.id === 'happy-dog') ?? works.find((w) => w.data.availability === 'commission');
+
+// Plain-English list of what a medium can go on / what a surface suits.
+const list = (items: string[]) =>
+  items.length < 2 ? items.join('') : `${items.slice(0, -1).join(', ')} and ${items.at(-1)}`;
+const mediumLabel = (id: string) => pricing.media.find((m) => m.id === id)?.label.toLowerCase() ?? id;
+
+---
+
+<BaseLayout
+  title="Commissions"
+  description="Commission a colour pencil or watercolour portrait from Anne Williamson: how it works, example prices and questions."
+>
+  <!-- 1. Page head -->
+  <section class="container c-head">
+    <div class:list={['split', 'split--7-5', { 'c-head--solo': !art }]}>
+      <div class="c-head__text">
+        <h1>Commission a portrait</h1>
+        <p class="lede">
+          Portraits of people and pets in colour pencil or watercolour, drawn from your photographs. How it works,
+          a price estimate and common questions.
+        </p>
+        <p class="status-line c-head__status">
+          <span class:list={['status-dot', open ? 'status-dot--open' : 'status-dot--closed']} aria-hidden="true"></span>
+          <span>
+            <span class="c-status__label">{open ? 'Open for commissions' : 'Commissions currently closed'}</span>
+            {settings.commissionsNote && <> · {settings.commissionsNote}</>}
+          </span>
+        </p>
+        <div class="btn-row">
+          <a class="btn btn--solid" href={startHref}>{open ? 'Start a commission' : 'Ask about the waiting list'}</a>
+          <a class="link-arrow c-js-only" href="#estimate">Estimate a price</a>
+        </div>
+      </div>
+      {
+        art && (
+          <div class="c-head__art">
+            <ArtFigure artwork={art} sizes="(min-width: 48em) 28rem, 100vw" width={900} loading="eager" availability />
+          </div>
+        )
+      }
+    </div>
+  </section>
+
+  <!-- 2. How it works -->
+  <section class="section tint tint--sage" aria-labelledby="how">
+    <div class="container">
+    <SectionHead id="how" title="How it works" />
+    <ol class="timeline">
+      {
+        steps.map((s, i) => (
+          <li class="timeline__step">
+            <div class="timeline__head" aria-hidden="true">
+              <span class="timeline__badge">
+                <HatchStage stage={i + 1} />
+                <span class="timeline__num">{i + 1}</span>
+              </span>
+              <span class="timeline__line" />
+            </div>
+            <h3 class="timeline__title">{s.title}</h3>
+            {s.text && <p class="timeline__text">{s.text}</p>}
+            {(s.prompt || !s.text) && (
+              <div class="timeline__text">
+                <Placeholder prompt={s.prompt ?? 'A line about this step.'} />
+              </div>
+            )}
+          </li>
+        ))
+      }
+    </ol>
+    </div>
+  </section>
+
+  <!-- 3. Medium and surface -->
+  <section class="section container" aria-labelledby="materials">
+    <SectionHead
+      id="materials"
+      title="Choose your medium and surface"
+      intro="Colour pencil is the main medium; watercolour commissions are also available."
+    />
+    <h3 class="c-group">Media</h3>
+    <div class="cards cards--2">
+      {
+        pricing.media.map((m) => (
+          <article class="card card--sage">
+            <h4 class="card__title">{m.label}</h4>
+            <p class="card__meta">
+              Surfaces: {list(surfacesFor(pricing, m.id).map(surfaceText))}
+            </p>
+            <p class="card__text">{m.text}</p>
+          </article>
+        ))
+      }
+    </div>
+    <h3 class="c-group">Surfaces</h3>
+    <div class="cards cards--4">
+      {
+        pricing.surfaces.map((s) => (
+          <article class="card card--sky">
+            <h4 class="card__title">{s.label}</h4>
+            <p class="card__meta">Suits: {list(s.suits.map(mediumLabel))}</p>
+            <p class="card__text">{s.text}</p>
+          </article>
+        ))
+      }
+    </div>
+  </section>
+
+  <!-- 4. Price estimator (needs JavaScript; hidden without it) -->
+  <section class="section tint tint--yolk tint--wave c-js-only" aria-labelledby="estimate-title" id="estimate">
+    <div class="container">
+      <SectionHead
+        id="estimate-title"
+        title="Estimate your price"
+        intro="Choose the options closest to what you have in mind for a guide price."
+      />
+      <PriceEstimator />
+    </div>
+  </section>
+
+  <!-- 7. FAQ -->
+  <section class="section container" aria-labelledby="faq">
+    <div class="split split--4-8 split--top">
+      <SectionHead id="faq" title="Questions" intro="Anything else? Please get in touch." />
+      <Faq items={faqs} />
+    </div>
+  </section>
+
+  <!-- 8. Closing CTA -->
+  <section class="section container c-close">
+    <NatureDivider motif="eggs" tone="hen" class="c-close__rule" />
+    <h2>Have someone in mind?</h2>
+    <p class="c-close__text">Get in touch with a few details and a photo or two.</p>
+    <a class="btn btn--solid" href={startHref}>{open ? 'Start a commission' : 'Ask about the waiting list'}</a>
+  </section>
+</BaseLayout>
+
+<style>
+  [hidden] {
+    display: none !important;
+  }
+
+  /* Bits that only make sense with JavaScript (the estimator and links to it). */
+  :global(html:not(.js)) .c-js-only {
+    display: none;
+  }
+
+  /* 1. Head ---------------------------------------------------------------- */
+  .c-head {
+    padding-top: clamp(var(--space-l), 6vw, var(--space-xl));
+  }
+
+  .c-head__text {
+    display: grid;
+    gap: var(--space-m);
+    justify-items: start;
+  }
+
+  .c-head__text .eyebrow,
+  .c-head__text h1 {
+    margin: 0;
+  }
+
+  .c-head__text h1 {
+    margin-top: calc(-1 * var(--space-xs));
+  }
+
+  .c-status__label {
+    color: var(--text);
+  }
+
+  .c-head__status {
+    margin-top: var(--space-2xs);
+  }
+
+  .c-head__art {
+    width: 100%;
+    max-width: 28rem;
+    justify-self: center;
+  }
+
+  @media (min-width: 48em) {
+    .c-head__art {
+      justify-self: end;
+    }
+  }
+
+  /* 2. Timeline ------------------------------------------------------------ */
+  .timeline {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+  }
+
+  /* Mobile: vertical. Number column on the left with a hairline down to the next step. */
+  .timeline__step {
+    display: grid;
+    grid-template-columns: 4.25rem 1fr;
+    grid-template-rows: auto 1fr;
+    column-gap: var(--space-m);
+  }
+
+  .timeline__head {
+    grid-row: 1 / span 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  /* Each step's badge is a stage of an egg hatching (1: egg … 5: hen), with the number on a small tag. */
+  .timeline__badge {
+    position: relative;
+    flex: none;
+    display: grid;
+    place-items: end center;
+    min-width: 3.5rem;
+    height: 3.5rem;
+  }
+
+  .timeline__num {
+    position: absolute;
+    right: -0.45rem;
+    bottom: -0.2rem;
+    display: grid;
+    place-items: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    border: 1px solid var(--yolk);
+    border-radius: 50%;
+    background: var(--surface);
+    font-family: var(--font-display);
+    font-size: 1rem;
+    font-weight: 500;
+    line-height: 1;
+    font-variant-numeric: lining-nums;
+    color: var(--text);
+  }
+
+  .timeline__line {
+    flex: 1;
+    width: 1px;
+    min-height: 1.5rem;
+    margin-bottom: 0.5rem;
+    background: color-mix(in srgb, var(--sage) 55%, transparent);
+  }
+
+  .timeline__step:last-child .timeline__line {
+    visibility: hidden;
+  }
+
+  .timeline__title {
+    padding-top: 0.45rem;
+    font-size: var(--text-h3);
+  }
+
+  .timeline__text {
+    padding: 0.4rem 0 var(--space-l);
+    color: var(--muted);
+    max-width: 52ch;
+    text-wrap: pretty;
+  }
+
+  /* Desktop: horizontal, numbers joined by a hairline. */
+  @media (min-width: 56em) {
+    .timeline {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+
+    .timeline__step {
+      display: block;
+    }
+
+    .timeline__head {
+      flex-direction: row;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: var(--space-s);
+    }
+
+    .timeline__line {
+      width: auto;
+      height: 1px;
+      min-height: 0;
+      margin: 0 1rem 0 0;
+    }
+
+    .timeline__step:last-child .timeline__line {
+      visibility: hidden;
+    }
+
+    .timeline__title {
+      padding-top: 0;
+      padding-right: var(--space-m);
+    }
+
+    .timeline__text {
+      padding: 0.5rem var(--space-m) 0 0;
+      font-size: 0.975rem;
+    }
+  }
+
+  /* 3. Media and surfaces -------------------------------------------------- */
+  .c-group {
+    margin: var(--space-l) 0 var(--space-s);
+    font-family: var(--font-body);
+    font-size: var(--text-small);
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    color: var(--muted);
+  }
+
+  .c-group:first-of-type {
+    margin-top: 0;
+  }
+
+  .cards {
+    display: grid;
+    gap: var(--space-m);
+  }
+
+  @media (min-width: 40em) {
+    .cards--2,
+    .cards--4 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 68em) {
+    .cards--4 {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
+  .card {
+    display: grid;
+    align-content: start;
+    gap: 0.5rem;
+    padding: clamp(1.25rem, 3vw, 2rem);
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-top: 2px solid var(--card-accent, var(--rule));
+  }
+
+  .card--sage { --card-accent: var(--sage); }
+  .card--sky { --card-accent: var(--sky); }
+
+  .card__title {
+    font-family: var(--font-display);
+    font-size: 1.6rem;
+    font-weight: 400;
+    line-height: 1.2;
+  }
+
+  .card__meta {
+    font-size: 0.8125rem;
+    color: var(--muted);
+  }
+
+  .card__meta::first-letter {
+    text-transform: uppercase;
+  }
+
+  .card__text {
+    margin-top: 0.25rem;
+    color: var(--text);
+    text-wrap: pretty;
+  }
+
+  /* 5. Timescales and what's included --------------------------------------------------------- */
+  /* 8. Closing ------------------------------------------------------------- */
+  .c-close {
+    display: grid;
+    justify-items: center;
+    gap: var(--space-m);
+    text-align: center;
+  }
+
+  .c-close :global(.c-close__rule) {
+    width: 100%;
+    margin: 0 0 var(--space-l);
+  }
+
+  .c-close__text {
+    color: var(--muted);
+    max-width: 44ch;
+    text-wrap: balance;
+  }
+</style>

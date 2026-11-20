@@ -1,0 +1,41 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { withBase } from '../lib/url';
+import { site } from '../data/site';
+---
+
+<BaseLayout title="Shop" description="Prints of Anne Williamson's artwork, coming soon.">
+  <section class="container container--narrow shop" aria-labelledby="shop-title">
+    <h1 id="shop-title">Prints, coming soon</h1>
+    <p class="lede">
+      Prints are not available to buy online yet. To ask about a print of something in the{' '}
+      <a href={withBase('/gallery/')}>gallery</a>, please get in touch.
+    </p>
+    <div class="btn-row shop__buttons">
+      <a class="btn btn--solid" href={site.email ? `mailto:${site.email}?subject=${encodeURIComponent('Print enquiry')}` : withBase('/contact/?about=Prints')}>
+        Enquire about a print
+      </a>
+      <a class="btn" href={withBase('/gallery/')}>Browse the gallery</a>
+    </div>
+
+    {/*
+      When ready: add products here as a .grid-auto of ArtFigure-style cards, each with a Stripe
+      Payment Link button. See README.md ("Selling prints") for the recommended set-up.
+      Then set shopEnabled: true in src/data/site.ts to show Shop in the menu.
+    */}
+  </section>
+</BaseLayout>
+
+<style>
+  .shop {
+    padding-top: var(--space-xl);
+  }
+
+  .shop .lede {
+    margin-top: var(--space-m);
+  }
+
+  .shop__buttons {
+    margin-top: var(--space-l);
+  }
+</style>

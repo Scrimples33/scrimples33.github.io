@@ -1,0 +1,79 @@
+---
+// An artwork on its mat, with a museum label underneath.
+// Props:
+//   artwork: CollectionEntry<'artworks'>   required
+//   sizes?: string        <img sizes>, default '(min-width: 48em) 33vw, 100vw'
+//   width?: number        rendered image width, default 800
+//   widths?: number[]     srcset widths, default [width/2, width, width*2]
+//   loading?: 'lazy' | 'eager'   default 'lazy' (use 'eager' for a hero)
+//   label?: boolean       show the museum label (title, medium · year), default true
+//   availability?: boolean  add the AvailabilityBadge line to the label, default false
+//   crop?: string         force an aspect ratio with object-fit: cover, e.g. '4 / 5' (default: natural ratio)
+//   chip?: boolean        add a colour-coded category chip (.cat-chip) to the label, default false
+//   class?: string        extra classes on the <figure>
+// The <figure> carries data-category, so var(--cat) / --cat-soft / --cat-ink work inside it.
+// Markup: <figure class="art-figure"><div class="mat"><img></div><figcaption class="art-label">
+//   <span class="art-label__title">…</span><span class="art-label__meta">Medium · 2025</span>
+//   [<span class="availability">…</span>]</figcaption></figure>
+// Not a link itself: wrap it in <a>/<button> in the page if it should be clickable.
+import { Image } from 'astro:assets';
+import type { Artwork } from '../lib/content';
+import AvailabilityBadge from './AvailabilityBadge.astro';
+import { categories } from '../data/categories';
+
+interface Props {
+  artwork: Artwork;
+  sizes?: string;
+  width?: number;
+  widths?: number[];
+  loading?: 'lazy' | 'eager';
+  label?: boolean;
+  availability?: boolean;
+  crop?: string;
+  chip?: boolean;
+  class?: string;
+}
+
+const {
+  artwork,
+  sizes = '(min-width: 48em) 33vw, 100vw',
+  width = 800,
+  widths,
+  loading = 'lazy',
+  label = true,
+  availability = false,
+  crop,
+  chip = false,
+  class: className,
+} = Astro.props;
+
+const { data } = artwork;
+const year = data.date.getUTCFullYear();
+const categoryLabel = categories.find((c) => c.id === data.category)?.label ?? data.category;
+---
+
+<figure class:list={['art-figure', className]} data-category={data.category}>
+  <div class:list={['mat', { 'mat--crop': crop }]} style={crop ? `--ratio: ${crop}` : undefined}>
+    <Image
+      src={data.image}
+      alt={data.imageAlt}
+      width={width}
+      widths={widths ?? [Math.round(width / 2), width, width * 2]}
+      sizes={sizes}
+      loading={loading}
+      fetchpriority={loading === 'eager' ? 'high' : undefined}
+    />
+  </div>
+  {
+    label && (
+      <figcaption class="art-label">
+        {chip && <span class="cat-chip art-label__chip">{categoryLabel}</span>}
+        <span class="art-label__title">{data.title}</span>
+        <span class="art-label__meta">
+          {data.medium} · {year}
+        </span>
+        {availability && <AvailabilityBadge status={data.availability} />}
+      </figcaption>
+    )
+  }
+</figure>

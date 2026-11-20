@@ -1,0 +1,105 @@
+---
+// One frame of an egg hatching, for the numbered "How it works" steps on the Commissions page.
+// stage 1: a whole egg · 2: a small crack · 3: cracked right round, a beak poking through
+// 4: a chick sitting in the bottom half of the shell, the cap knocked off · 5: a full-grown hen.
+// Decorative (aria-hidden); lines use currentColor, washes use the yolk tints.
+// Props:
+//   stage: 1 | 2 | 3 | 4 | 5
+//   size?: number   height in px, default 56
+//   class?: string
+import Hen from './Hen.astro';
+
+interface Props {
+  stage: number;
+  size?: number;
+  class?: string;
+}
+
+const { stage, size = 56, class: className } = Astro.props;
+const s = Math.min(5, Math.max(1, Math.round(stage)));
+
+// viewBox 0 0 48 56. The egg stands 48 units tall, centred on x = 24.
+const egg = 'M24 6C34 6 41 23 41 36C41 47 33 54 24 54C15 54 7 47 7 36C7 23 14 6 24 6Z';
+// Bottom half of the shell, with a zigzag broken edge at about y = 30.
+const lowerShell =
+  'M7.6 30L11.5 26.5L15.5 30.5L19.5 26.5L24 30.5L28.5 26.5L32.5 30.5L36.5 26.5L40.4 30C41.2 33 41 35 41 36C41 47 33 54 24 54C15 54 7 47 7 36C7 34 7.2 32 7.6 30Z';
+---
+
+<span class:list={['hatch', `hatch--${s}`, className]} style={`--hatch-h:${size}px`} aria-hidden="true">
+  {
+    s === 5 ? (
+      <Hen class="hatch__hen" pose="peck" size={Math.round(size * 1.25)} ground />
+    ) : (
+      <svg viewBox="0 0 48 56" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" focusable="false">
+        {s <= 3 && (
+          <>
+            <path class="hatch__shell" d={egg} />
+            {s === 2 && <path d="M29 12.5L31.6 16L29.4 18.6L32.2 21.6" />}
+            {s === 3 && (
+              <>
+                <path d="M8.2 27.5L12 24L16 28L20 23.5L24 27.5L28 23.5L32 28L36 24L39.8 27.5" />
+                <path class="hatch__beak" d="M21.6 23.8L24 19.2L26.4 23.8Z" />
+              </>
+            )}
+          </>
+        )}
+        {s === 4 && (
+          <>
+            {/* The cap, knocked off to the top left. */}
+            <path class="hatch__shell" d="M2.8 15.5C3.6 9 9 4.6 14.4 6.2L13.6 9.4L10.8 8.6L9.4 12L6.4 11.2L5.6 14.6Z" />
+            {/* The chick: fluffy head and a tuft, an eye and a beak. */}
+            <circle class="hatch__chick" cx="24" cy="21" r="8.4" />
+            <path d="M22.2 12.8C22.4 10.6 23.6 10.2 24 12.4C24.6 10.2 26 10.4 25.8 12.8" />
+            <circle class="hatch__eye" cx="26.6" cy="19.6" r="0.9" />
+            <path class="hatch__beak" d="M31.8 20.2L35.6 21.8L31.8 23.4Z" />
+            <path class="hatch__shell" d={lowerShell} />
+          </>
+        )}
+      </svg>
+    )
+  }
+</span>
+
+<style>
+  .hatch {
+    display: inline-grid;
+    place-items: end center;
+    height: var(--hatch-h);
+    color: var(--hen-ink);
+  }
+
+  .hatch svg {
+    height: 100%;
+    width: auto;
+    overflow: visible;
+  }
+
+  .hatch path,
+  .hatch circle {
+    stroke-width: 1.4px;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .hatch__shell {
+    fill: var(--yolk-soft);
+  }
+
+  .hatch__chick {
+    fill: color-mix(in srgb, var(--yolk) 55%, var(--yolk-soft));
+  }
+
+  .hatch__beak {
+    fill: var(--hen);
+    stroke: var(--hen-ink);
+  }
+
+  .hatch__eye {
+    fill: currentColor;
+    stroke: none;
+  }
+
+  .hatch :global(.hatch__hen) {
+    max-height: var(--hatch-h);
+    width: auto;
+  }
+</style>

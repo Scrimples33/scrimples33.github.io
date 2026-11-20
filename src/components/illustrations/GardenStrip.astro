@@ -1,0 +1,71 @@
+---
+// A full-width strip of garden edge: a hand-drawn ground line with grass, a few flowers and sprigs,
+// and (optionally) a hen pecking with an egg nearby. Used along the bottom of the site footer.
+// Decorative (aria-hidden). Fills its container's width; height is fixed (~5.5rem).
+// Props:
+//   hen?: boolean    include the pecking hen and egg, default true
+//   class?: string
+import Hen from './Hen.astro';
+import Egg from './Egg.astro';
+import Flower from './Flower.astro';
+import Sprig from './Sprig.astro';
+import Fern from './Fern.astro';
+import { round, wobble } from './_util';
+
+interface Props {
+  hen?: boolean;
+  class?: string;
+}
+
+const { hen = true, class: className } = Astro.props;
+
+// Ground: a slightly uneven line across a wide box, cropped (not stretched) on narrow screens.
+const W = 1600;
+const groundY = 34;
+let ground = `M0 ${groundY}`;
+for (let x = 0; x < W; x += 80) {
+  ground += `Q${x + 40} ${round(groundY + wobble(x, 1.6))} ${x + 80} ${round(groundY + wobble(x + 80, 0.9))}`;
+}
+const tufts: string[] = [];
+for (let i = 0, x = 14; x < W; i++, x += 46 + wobble(i, 14)) {
+  const h = 7 + Math.abs(wobble(i + 7, 5));
+  const bx = round(x);
+  tufts.push(
+    `M${bx} ${groundY}C${round(bx - 1)} ${round(groundY - h * 0.6)} ${round(bx - 3)} ${round(groundY - h)} ${round(bx - 5)} ${round(groundY - h * 1.1)}` +
+      `M${round(bx + 2)} ${groundY}C${round(bx + 2.4)} ${round(groundY - h * 0.7)} ${round(bx + 3.6)} ${round(groundY - h * 1.2)} ${round(bx + 5.4)} ${round(groundY - h * 1.35)}` +
+      (i % 3 === 0 ? `M${round(bx + 4)} ${groundY}C${round(bx + 6)} ${round(groundY - h * 0.4)} ${round(bx + 8.6)} ${round(groundY - h * 0.6)} ${round(bx + 11)} ${round(groundY - h * 0.6)}` : ''),
+  );
+}
+---
+
+<div class:list={['garden-strip', className]} aria-hidden="true">
+  <svg
+    class="ill garden-strip__ground"
+    viewBox={`0 0 ${W} 40`}
+    preserveAspectRatio="xMidYMax slice"
+    fill="none"
+    stroke="currentColor"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    focusable="false"
+  >
+    <path d={ground} />
+    <path class="ill-soft" d={tufts.join('')} />
+  </svg>
+
+  <span class="garden-strip__item ill-ink--sage" style="--x: 4%"><Fern size={34} /></span>
+  <span class="garden-strip__item ill-ink--blossom" style="--x: 11%"><Flower stem size={26} /></span>
+  <span class="garden-strip__item garden-strip__item--wide ill-ink--yolk" style="--x: 17%"><Flower stem size={20} tone="yolk" petals={10} /></span>
+  <span class="garden-strip__item garden-strip__item--wide ill-ink--sage" style="--x: 30%"><Sprig size={22} /></span>
+  <span class="garden-strip__item garden-strip__item--wide ill-ink--blossom" style="--x: 46%"><Flower stem size={22} petals={7} /></span>
+  {
+    hen && (
+      <>
+        <span class="garden-strip__item garden-strip__hen" style="--x: 70%"><Hen pose="peck" size={96} /></span>
+        <span class="garden-strip__item garden-strip__egg" style="--x: calc(70% + 58px)"><Egg size={13} tilt={-10} /></span>
+      </>
+    )
+  }
+  <span class="garden-strip__item ill-ink--sage" style="--x: calc(70% + 96px)"><Sprig size={24} berries /></span>
+  <span class="garden-strip__item garden-strip__item--wide ill-ink--blossom" style="--x: 96%"><Flower stem size={24} tone="blossom" petals={9} /></span>
+</div>

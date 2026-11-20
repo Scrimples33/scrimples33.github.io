@@ -1,0 +1,101 @@
+---
+// A clearly-draft box marking a spot that still needs Anne's own words (or photo).
+// Delete the <Placeholder ... /> and put the real content in its place when ready.
+// Props:
+//   prompt: string                 what to write, e.g. "A few sentences about how you got into drawing."
+//   kind?: 'text' | 'photo'        'photo' renders a 4:5 panel instead of a text box (default 'text')
+//   lines?: number                 rough height for text, in lines (default 1)
+//   inline?: boolean               render as a <span> so it can sit inside a <p> (default false)
+//   class?: string
+interface Props {
+  prompt: string;
+  kind?: 'text' | 'photo';
+  lines?: number;
+  inline?: boolean;
+  class?: string;
+}
+const { prompt, kind = 'text', lines = 1, inline = false, class: className } = Astro.props;
+const Tag = inline ? 'span' : 'div';
+const label = kind === 'photo' ? 'Photo to add' : 'To fill in';
+---
+
+<Tag
+  class:list={['ph', `ph--${kind}`, { 'ph--inline': inline }, className]}
+  style={kind === 'text' ? `--ph-lines: ${Math.max(1, lines)}` : undefined}
+  data-placeholder
+>
+  <span class="ph__label">
+    <svg class="ph__icon" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+      <path d="M10.8 2.2l3 3L5.6 13.4l-3.6.6.6-3.6z M9.3 3.7l3 3" />
+    </svg>
+    {label}
+  </span>
+  <span class="ph__prompt">{prompt}</span>
+</Tag>
+
+<style>
+  .ph {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    min-height: calc(var(--ph-lines, 1) * 1.7em + 2.6rem);
+    padding: 0.85rem 1rem;
+    /* Unmistakably "to fill in": a dashed russet border on a pale yolk wash, in both themes. */
+    border: 1.5px dashed var(--hen);
+    border-radius: var(--radius, 2px);
+    background: var(--yolk-soft);
+    color: var(--muted-tint);
+    font-family: var(--font-body);
+    font-size: var(--text-small, 0.875rem);
+    font-style: normal;
+    font-weight: 400;
+    line-height: 1.55;
+    letter-spacing: normal;
+    text-align: left;
+    text-transform: none;
+  }
+
+  .ph--inline {
+    display: inline-flex;
+    min-height: 0;
+    padding: 0.5rem 0.75rem;
+  }
+
+  .ph--photo {
+    justify-content: center;
+    align-items: center;
+    aspect-ratio: 4 / 5;
+    min-height: 0;
+    text-align: center;
+  }
+
+  .ph__label {
+    display: inline-flex;
+    white-space: nowrap;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--hen-ink);
+  }
+
+  .ph__icon {
+    flex: none;
+    display: block;
+    width: 14px;
+    height: 14px;
+    max-width: none;
+    fill: none;
+    stroke: var(--hen-ink);
+    stroke-width: 1.4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .ph__prompt {
+    font-style: italic;
+    text-wrap: pretty;
+  }
+</style>

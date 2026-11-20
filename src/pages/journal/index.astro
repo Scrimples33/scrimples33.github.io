@@ -1,0 +1,353 @@
+---
+import { Image } from 'astro:assets';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PostCard from '../../components/PostCard.astro';
+import Fern from '../../components/illustrations/Fern.astro';
+import { getPublishedPosts, postUrl } from '../../lib/content';
+import { formatDate } from '../../lib/format';
+import { withBase } from '../../lib/url';
+import { site } from '../../data/site';
+
+const posts = await getPublishedPosts();
+const [lead, ...rest] = posts;
+const tags = [...new Set(posts.flatMap((p) => p.data.tags))].sort((a, b) => a.localeCompare(b));
+const tagAttr = (tags: string[]) => tags.join(' ');
+---
+
+<BaseLayout
+  title="Journal"
+  description="Anne Williamson's journal: blog posts about her life."
+>
+  <header class="container page-head">
+    <h1>Journal</h1>
+    <p class="lede">Blog posts about my life.</p>
+    <Fern class="page-head__fern" size={64} />
+  </header>
+
+  <div class="container journal">
+    {
+      posts.length === 0 ? (
+        <p class="journal__empty">
+          Nothing here just yet. In the meantime you can follow work in progress on{' '}
+          <a href={site.instagram} rel="noopener">Instagram {site.instagramHandle}</a>.
+        </p>
+      ) : (
+        <>
+          {tags.length > 1 && (
+            <nav class="tag-filter" aria-label="Filter posts by topic" data-tag-filter hidden>
+              <span class="tag-filter__label">Topics</span>
+              <ul>
+                <li>
+                  <button type="button" data-tag="" aria-pressed="true">All</button>
+                </li>
+                {tags.map((tag) => (
+                  <li>
+                    <button type="button" data-tag={tag} aria-pressed="false">
+                      {tag}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          )}
+
+          <article
+            class:list={['lead-post', { 'lead-post--text': !lead.data.cover }]}
+            data-tags={tagAttr(lead.data.tags)}
+          >
+            {lead.data.cover && (
+              <div class="lead-post__media mat">
+                <Image
+                  src={lead.data.cover}
+                  alt={lead.data.coverAlt ?? ''}
+                  width={1100}
+                  sizes="(min-width: 72rem) 40rem, (min-width: 48em) 58vw, 100vw"
+                  loading="eager"
+                />
+              </div>
+            )}
+            <div class="lead-post__body">
+              <p class="eyebrow eyebrow--sage">
+                <span class="visually-hidden">Latest: </span>
+                <time datetime={lead.data.date.toISOString()}>{formatDate(lead.data.date)}</time>
+              </p>
+              <h2 class="lead-post__title">
+                <a href={postUrl(lead)}>{lead.data.title}</a>
+              </h2>
+              <p class="lead-post__summary">{lead.data.summary}</p>
+              <p>
+                <span class="link-arrow" aria-hidden="true">Read the entry</span>
+              </p>
+            </div>
+          </article>
+
+          {rest.length > 0 && (
+            <>
+              <h2 class="visually-hidden">Earlier entries</h2>
+              <ul class="journal__grid" role="list">
+                {rest.map((post) => (
+                  <li data-tags={tagAttr(post.data.tags)}>
+                    <PostCard post={post} />
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+
+          <p class="journal__none" data-no-match hidden>
+            No entries on that topic yet.
+          </p>
+
+          <p class="journal__rss">
+            <a href={withBase('/rss.xml')}>Subscribe by RSS</a>
+          </p>
+        </>
+      )
+    }
+  </div>
+</BaseLayout>
+
+<script>
+  const filter = document.querySelector<HTMLElement>('[data-tag-filter]');
+  if (filter) {
+    filter.hidden = false;
+    const buttons = [...filter.querySelectorAll<HTMLButtonElement>('button[data-tag]')];
+    const items = [...document.querySelectorAll<HTMLElement>('.journal [data-tags]')];
+    const none = document.querySelector<HTMLElement>('[data-no-match]');
+
+    function apply(tag: string, updateUrl: boolean) {
+      if (tag && !buttons.some((b) => b.dataset.tag === tag)) tag = '';
+      buttons.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.tag === tag)));
+      let shown = 0;
+      items.forEach((el) => {
+        const match = !tag || (el.dataset.tags ?? '').split(' ').includes(tag);
+        el.hidden = !match;
+        if (match) shown++;
+      });
+      if (none) none.hidden = shown > 0;
+      if (updateUrl) {
+        const url = new URL(location.href);
+        if (tag) url.searchParams.set('tag', tag);
+        else url.searchParams.delete('tag');
+        history.replaceState(null, '', url);
+      }
+    }
+
+    buttons.forEach((b) => b.addEventListener('click', () => apply(b.dataset.tag ?? '', true)));
+    apply(new URLSearchParams(location.search).get('tag') ?? '', false);
+  }
+</script>
+
+<style>
+  .page-head {
+    position: relative;
+    padding-block: var(--space-xl) var(--space-l);
+  }
+
+  /* A fern frond in the head's right margin (wide screens only). */
+  .page-head :global(.page-head__fern) {
+    display: none;
+    position: absolute;
+    right: 0;
+    bottom: var(--space-l);
+    color: var(--sage-ink);
+  }
+
+  @media (min-width: 48em) {
+    .page-head :global(.page-head__fern) {
+      display: block;
+    }
+  }
+
+  .page-head h1 {
+    max-width: 18ch;
+  }
+
+  .page-head .lede {
+    margin-top: var(--space-m);
+  }
+
+  /* Topic filter: quiet text buttons on a hairline. */
+  .tag-filter {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-xs) var(--space-m);
+    padding-block: var(--space-s);
+    margin-bottom: var(--space-xl);
+    border-block: 1px solid var(--rule);
+  }
+
+  .tag-filter[hidden] {
+    display: none;
+  }
+
+  .tag-filter__label {
+    font-size: var(--text-eyebrow);
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .tag-filter ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2xs) var(--space-m);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  /* Topic buttons: small rounded sage chips (same shape as .cat-chip). */
+  .tag-filter button {
+    padding: 0.2rem 0.8rem;
+    border: 1px solid color-mix(in srgb, var(--sage) 45%, transparent);
+    border-radius: 999px;
+    background: none;
+    color: var(--muted);
+    font-size: 0.875rem;
+    text-transform: capitalize;
+    transition: color var(--dur) var(--ease), background-color var(--dur) var(--ease);
+  }
+
+  .tag-filter button:hover {
+    color: var(--text);
+    background: color-mix(in srgb, var(--sage-soft) 60%, transparent);
+  }
+
+  .tag-filter button[aria-pressed='true'] {
+    color: var(--text);
+    background: var(--sage-soft);
+    border-color: var(--sage);
+  }
+
+  /* Lead post: image 7/12, text 5/12. */
+  .lead-post {
+    position: relative;
+    display: grid;
+    gap: var(--space-m);
+    align-items: center;
+  }
+
+  .lead-post[hidden] {
+    display: none;
+  }
+
+  @media (min-width: 48em) {
+    .lead-post {
+      grid-template-columns: 7fr 5fr;
+      gap: var(--space-xl);
+    }
+  }
+
+  .lead-post__media img {
+    transition: opacity var(--dur) var(--ease);
+  }
+
+  /* No cover: a text-only lead, set larger, so there's no empty panel. */
+  @media (min-width: 48em) {
+    .lead-post--text {
+      grid-template-columns: minmax(0, 46rem);
+    }
+  }
+
+  .lead-post--text .lead-post__title {
+    font-size: var(--text-h1);
+  }
+
+  .lead-post--text .lead-post__summary {
+    font-size: 1.2rem;
+    max-width: 56ch;
+  }
+
+  .lead-post__body .eyebrow {
+    margin-bottom: var(--space-s);
+  }
+
+  .lead-post__title {
+    font-size: var(--text-h2);
+  }
+
+  .lead-post__title a {
+    color: var(--text);
+    text-decoration: none;
+  }
+
+  .lead-post__title a::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+
+  .lead-post__title a:focus-visible {
+    outline: none;
+  }
+
+  .lead-post:has(a:focus-visible) {
+    outline: 2px solid var(--accent);
+    outline-offset: 8px;
+  }
+
+  .lead-post:hover .lead-post__media img {
+    opacity: 0.92;
+  }
+
+  .lead-post:hover .link-arrow {
+    color: var(--text);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.22em;
+  }
+
+  .lead-post:hover .link-arrow::after {
+    transform: translateX(3px);
+  }
+
+  .lead-post__summary {
+    margin-block: var(--space-s) var(--space-m);
+    font-size: 1.125rem;
+    color: var(--muted);
+    text-wrap: pretty;
+  }
+
+  /* The rest: three columns on wide screens. */
+  .journal__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr));
+    gap: var(--space-xl) var(--space-l);
+    margin: var(--space-xl) 0 0;
+    padding: var(--space-xl) 0 0;
+    border-top: 1px solid color-mix(in srgb, var(--sage) 35%, var(--rule));
+    list-style: none;
+  }
+
+  @media (min-width: 64em) {
+    .journal__grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  .journal__grid li[hidden] {
+    display: none;
+  }
+
+  .journal__empty,
+  .journal__none {
+    padding-block: var(--space-l);
+    color: var(--muted);
+  }
+
+  .journal__rss {
+    margin-top: var(--space-xl);
+    font-size: var(--text-small);
+  }
+
+  .journal__rss a {
+    color: var(--muted);
+  }
+
+  .journal__rss a:hover {
+    color: var(--text);
+  }
+</style>

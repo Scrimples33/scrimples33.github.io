@@ -1,0 +1,570 @@
+---
+// Home page.
+// Figures here reuse the shared .art-figure / .mat / .art-label classes from global.css,
+// but render <Image> directly so each can have a responsive srcset (`widths` + `sizes`).
+import { Image } from 'astro:assets';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SectionHead from '../components/SectionHead.astro';
+import PostCard from '../components/PostCard.astro';
+import Placeholder from '../components/Placeholder.astro';
+import Hen from '../components/illustrations/Hen.astro';
+import Feather from '../components/illustrations/Feather.astro';
+import NatureDivider from '../components/illustrations/NatureDivider.astro';
+import anneHero from '../assets/about/anne-banyan.jpg';
+import { withBase } from '../lib/url';
+import { site } from '../data/site';
+import {
+  artworkUrl,
+  getArtworks,
+  getArtworksByCategory,
+  getPublishedPosts,
+  type Artwork,
+} from '../lib/content';
+
+// Placeholder artworks are SVGs; real work is a photo (JPG/PNG/WebP).
+const isReal = (a: Artwork) => a.data.image.format !== 'svg';
+const year = (a: Artwork) => a.data.date.getUTCFullYear();
+
+const all = await getArtworks(); // newest first
+// The hero is a photo of Anne (anneHero), not an artwork.
+
+// Commissions band: the newest real private commission, else a real featured work, else anything.
+const bandArt =
+  all.find((a) => isReal(a) && a.data.availability === 'commission') ??
+  all.find((a) => isReal(a) && a.data.featured) ??
+  all.find(isReal) ??
+  all[0];
+
+// Category panels: the newest real (non-placeholder) work in each category. A category with
+// only placeholders (or nothing yet) gets a quiet text panel with its blurb instead of a fake image.
+const panels = (await getArtworksByCategory()).map((c) => ({
+  ...c,
+  cover: c.artworks.find(isReal),
+  count: c.artworks.length,
+}));
+
+const posts = (await getPublishedPosts()).slice(0, 3);
+---
+
+<BaseLayout description="Anne Williamson, portrait and wildlife artist working in colour pencil and watercolour. See the gallery, read the journal, or commission a portrait.">
+  <!-- 1. Hero -->
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="container split split--5-7 hero__grid">
+      <div class="hero__text">
+        <h1 id="hero-title">Portraits of people, pets and <span class="squiggle">wildlife</span></h1>
+        <p class="lede hero__lede">
+          Hi, I'm Anne, a self-taught artist from Staffordshire, UK. I work mainly in colour pencil, and also in
+          watercolour.
+        </p>
+        <div class="btn-row hero__actions">
+          <a class="btn btn--solid" href={withBase('/gallery/')}>View the gallery</a>
+          <a class="btn" href={withBase('/commissions/')}>Commission a portrait</a>
+        </div>
+      </div>
+      <div class="hero__art" style={`--ar: ${(anneHero.width / anneHero.height).toFixed(4)}`}>
+        <div class="mat">
+          <Image
+            src={anneHero}
+            alt="Anne Williamson standing in front of a huge banyan tree with long hanging roots"
+            widths={[480, 720, 960, 1200]}
+            sizes="(min-width: 72em) 40rem, (min-width: 48em) 56vw, calc(100vw - 2rem)"
+            loading="eager"
+            fetchpriority="high"
+          />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. Statement -->
+  {/* TODO (Anne): replace the Placeholder below with your own words, e.g. <p class="statement">…</p> */}
+  <section class="section" aria-label="A note from Anne">
+    <div class="container container--narrow">
+      <NatureDivider motif="sprig" tight class="statement-divider" />
+      <figure class="statement-block">
+        <Placeholder prompt="A sentence or two about what you love to draw." lines={2} />
+      </figure>
+    </div>
+  </section>
+
+  <!-- 3. The gallery: one image-led panel per category -->
+  <section class="section" aria-labelledby="gallery-title">
+    <div class="container">
+      <div class="head-row">
+        <SectionHead id="gallery-title" title="The gallery" />
+        <a class="link-arrow head-row__link" href={withBase('/gallery/')}>
+          See all work
+        </a>
+      </div>
+      <ul class="panels" role="list">
+        {
+          panels.map((p) => (
+            <li>
+              <a class="panel" href={withBase(`/gallery/#${p.id}`)} data-category={p.id}>
+                {p.cover ? (
+                  <span class="mat mat--crop panel__mat" style="--ratio: 4 / 5">
+                    <Image
+                      src={p.cover.data.image}
+                      alt=""
+                      widths={[360, 540, 720, 900]}
+                      sizes="(min-width: 72em) 16rem, (min-width: 64em) 22vw, (min-width: 34em) 45vw, calc(100vw - 2rem)"
+                    />
+                  </span>
+                ) : (
+                  <span class="mat panel__mat">
+                    <span class="panel__empty">
+                      <span class="panel__blurb">{p.blurb}</span>
+                    </span>
+                  </span>
+                )}
+                <span class="panel__label">
+                  <span class="panel__name">{p.label}</span>
+                  <span class="panel__count">
+                    {p.count === 0 ? 'Coming soon' : `${p.count} ${p.count === 1 ? 'work' : 'works'}`}
+                  </span>
+                </span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <!-- 5. Commissions band -->
+  <section class="section tint tint--sage tint--wave" aria-labelledby="commissions-title">
+    <div class="container">
+      <div class:list={['band', 'split', 'split--5-7', { 'band--text-only': !bandArt }]}>
+        {
+          bandArt && (
+            <a class="band__art art-link" href={artworkUrl(bandArt)}>
+              <figure class="art-figure">
+                <div class="mat">
+                  <Image
+                    src={bandArt.data.image}
+                    alt={bandArt.data.imageAlt}
+                    widths={[360, 540, 720, 960]}
+                    sizes="(min-width: 72em) 26rem, (min-width: 48em) 38vw, calc(100vw - 2rem)"
+                  />
+                </div>
+                <figcaption class="art-label">
+                  <span class="art-label__title">{bandArt.data.title}</span>
+                  <span class="art-label__meta">
+                    {bandArt.data.medium} · {year(bandArt)}
+                  </span>
+                </figcaption>
+              </figure>
+            </a>
+          )
+        }
+        <div class="band__text stack">
+          <h2 id="commissions-title">Commission a portrait</h2>
+          <p class="band__copy">
+            Portraits of people and pets, drawn from your photographs in colour pencil or watercolour.
+          </p>
+          <div class="band__actions">
+            <div class="btn-row">
+              <a class="btn btn--solid" href={withBase('/commissions/')}>How commissions work</a>
+              <a class="btn" href={withBase('/contact/')}>Contact me</a>
+            </div>
+            <Hen class="band__hen" pose="peck" size={92} ground />
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. Recognition -->
+  <section class="section" aria-label="Recognition">
+    <div class="container container--narrow recognition">
+      <Feather class="recognition__feather" size={16} tilt={58} tone="yolk" />
+      <p class="eyebrow recognition__title">Highly Commended, RBSA Summer Show 2023</p>
+      <p class="recognition__text">
+        <em>Wily Thoughts</em>, a red fox in colour pencil, was Highly Commended at the Royal Birmingham Society of
+        Artists Summer Show 2023. <em>Self-reflection</em>, a self-portrait, was shown at the RBSA Gallery in 2024.
+      </p>
+      <div class="recognition__notes">
+        <Placeholder prompt="Add the other pieces that have been exhibited at the RBSA Gallery." />
+        <Placeholder prompt="Idea: show the RBSA pieces here side by side with captions, instead of this paragraph." />
+      </div>
+    </div>
+  </section>
+
+  <!-- 7. From the journal -->
+  {
+    posts.length > 0 && (
+      <section class="section" aria-labelledby="journal-title">
+        <div class="container">
+          <div class="head-row">
+            <SectionHead
+              id="journal-title"
+              title="From the journal"
+              intro="Blog posts about my life."
+            />
+            <a class="link-arrow head-row__link" href={withBase('/journal/')}>
+              Read the journal
+            </a>
+          </div>
+          <ul class="posts" role="list">
+            {posts.map((p) => (
+              <li>
+                <PostCard post={p} />
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+    )
+  }
+
+  <!-- 8. Instagram -->
+  <section class="instagram" aria-label="Instagram">
+    <div class="container instagram__inner">
+      <Hen class="instagram__hen" size={70} />
+      <p>
+        Follow my Instagram{' '}
+        <a href={site.instagram} rel="me noopener">{site.instagramHandle}</a>
+      </p>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  /* Shared: a whole figure as a link, calm hover. */
+  .art-link {
+    display: block;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .art-link img,
+  .panel img {
+    transition: opacity var(--dur) var(--ease);
+  }
+
+  .art-link:hover img,
+  .panel:hover img {
+    opacity: 0.92;
+  }
+
+  .art-link:hover .art-label__title,
+  .panel:hover .panel__name {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+    text-decoration-color: var(--muted);
+  }
+
+  ul[role='list'] {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  /* 1. Hero ---------------------------------------------------------------- */
+  .hero {
+    padding-block: var(--space-l) 0;
+  }
+
+  .hero__grid {
+    --split-gap: var(--space-l);
+  }
+
+  .hero__art {
+    order: -1; /* art first on mobile */
+  }
+
+  .hero__text h1 {
+    max-width: 14ch;
+  }
+
+  .hero__lede {
+    margin-top: var(--space-m);
+    max-width: 36ch;
+  }
+
+  .hero__actions {
+    margin-top: var(--space-l);
+  }
+
+  @media (min-width: 48em) {
+    .hero {
+      padding-top: var(--space-xl);
+    }
+
+    .hero__grid {
+      --split-gap: clamp(2.5rem, 5vw, 5rem);
+    }
+
+    .hero__art {
+      order: 0;
+      /* Keep the whole piece in view: cap the height, keep its proportions. */
+      width: min(100%, calc((100svh - 14rem) * var(--ar, 0.8)));
+      min-width: min(100%, 22rem);
+      justify-self: end;
+    }
+  }
+
+  /* 2. Statement ----------------------------------------------------------- */
+  .statement-block {
+    text-align: center;
+  }
+
+  .container > :global(.statement-divider) {
+    width: 100%;
+    margin-block: 0 var(--space-l);
+  }
+
+  .statement-block blockquote {
+    margin: 0;
+  }
+
+  .statement-block__by {
+    margin-top: var(--space-m);
+    font-size: var(--text-small);
+    letter-spacing: 0.04em;
+    color: var(--muted);
+  }
+
+  /* 3. Category panels ----------------------------------------------------- */
+  .panels {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-l) var(--space-m);
+  }
+
+  @media (min-width: 34em) {
+    .panels {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (min-width: 64em) {
+    .panels {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+
+  .panel {
+    display: block;
+    color: var(--text);
+    text-decoration: none;
+  }
+
+  .panel__mat {
+    display: block;
+  }
+
+  /* No real image yet: a soft panel the same size as the others, with the category blurb. */
+  .panel__empty {
+    display: grid;
+    place-items: center;
+    aspect-ratio: 4 / 5;
+    padding: var(--space-m);
+    background: var(--cat-soft);
+    --muted: var(--muted-tint);
+    text-align: center;
+    transition: opacity var(--dur) var(--ease);
+  }
+
+  .panel:hover .panel__empty {
+    opacity: 0.92;
+  }
+
+  .panel__blurb {
+    max-width: 16ch;
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 1.35rem;
+    line-height: 1.4;
+    color: var(--muted);
+    text-wrap: balance;
+  }
+
+  .panel__blurb::after {
+    content: '';
+    display: block;
+    width: 1.5rem;
+    margin: var(--space-m) auto 0;
+    border-top: 1px solid var(--cat);
+  }
+
+  .panel__label {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-s);
+    margin-top: var(--space-s);
+  }
+
+  /* Category name with a small egg dot in its colour (botanical sage, portraits pink, pets yolk, wildlife russet). */
+  .panel__name {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--font-display);
+    font-size: 1.6rem;
+    font-weight: 400;
+    line-height: 1.2;
+  }
+
+  .panel__name::before {
+    content: '';
+    flex: none;
+    width: 7px;
+    height: 9px;
+    border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+    background: var(--cat);
+  }
+
+  .panel:hover .panel__name {
+    text-decoration-color: var(--cat);
+  }
+
+  .panel__count {
+    flex: none;
+    font-size: var(--text-small);
+    color: var(--muted);
+  }
+
+  /* Section head with a link aligned to it (Selected work, Journal). */
+  .head-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 0 var(--space-l);
+    margin-bottom: var(--space-l);
+  }
+
+  .head-row :global(.section-head) {
+    margin-bottom: 0;
+  }
+
+  .head-row__link {
+    margin-top: var(--space-s);
+  }
+
+  .recognition__notes {
+    display: grid;
+    gap: var(--space-s);
+    margin-top: var(--space-m);
+    text-align: left;
+  }
+
+  /* 5. Commissions band ---------------------------------------------------- */
+  .band {
+    --split-gap: var(--space-l);
+  }
+
+  .band__art {
+    width: min(100%, 26rem);
+  }
+
+  .band__text {
+    --stack-gap: var(--space-m);
+    max-width: 34rem;
+  }
+
+  .band__text .eyebrow {
+    margin-bottom: 0;
+  }
+
+  .band__text h2 {
+    margin-top: var(--space-xs);
+  }
+
+  .band__copy {
+    max-width: 52ch;
+    text-wrap: pretty;
+  }
+
+  .band__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--space-m);
+    padding-top: var(--space-xs);
+  }
+
+  .band__actions :global(.band__hen) {
+    color: var(--hen-ink);
+    margin-right: var(--space-s);
+  }
+
+  .band--text-only {
+    grid-template-columns: 1fr;
+  }
+
+  @media (min-width: 48em) {
+    .band {
+      --split-gap: clamp(2.5rem, 6vw, 6rem);
+    }
+
+    .band__art {
+      justify-self: end;
+    }
+  }
+
+  /* 6. Recognition --------------------------------------------------------- */
+  .recognition {
+    text-align: center;
+  }
+
+  .recognition :global(.recognition__feather) {
+    margin: 0 auto var(--space-m);
+    color: var(--yolk-ink);
+  }
+
+  .recognition__title {
+    margin-bottom: var(--space-xs);
+    color: var(--text);
+  }
+
+  .recognition__text {
+    margin-inline: auto;
+    max-width: 48ch;
+    font-size: var(--text-small);
+    color: var(--muted);
+    text-wrap: balance;
+  }
+
+  /* 7. Journal ------------------------------------------------------------- */
+  .posts {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr));
+    gap: var(--space-xl) var(--space-l);
+    align-items: start;
+  }
+
+  /* 8. Instagram ----------------------------------------------------------- */
+  /* Instagram (@cluckinghens): a quiet line under a small hen. */
+  .instagram {
+    padding-top: var(--space-2xl);
+    text-align: center;
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 1.35rem;
+    line-height: 1.5;
+    color: var(--muted);
+  }
+
+  .instagram__inner {
+    display: grid;
+    justify-items: center;
+    gap: var(--space-s);
+  }
+
+  .instagram :global(.instagram__hen) {
+    color: var(--hen-ink);
+  }
+
+  .instagram a {
+    font-style: normal;
+    font-family: var(--font-body);
+    font-size: 1rem;
+    font-weight: 500;
+    margin-left: 0.25em;
+  }
+</style>

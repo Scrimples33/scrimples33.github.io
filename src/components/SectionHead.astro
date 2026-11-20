@@ -1,0 +1,34 @@
+---
+// Section heading block: optional eyebrow, title, optional intro.
+// Props:
+//   title: string                 required
+//   eyebrow?: string              small uppercase label above the title
+//   eyebrowTone?: 'sage' | 'hen' | 'yolk' | 'sky' | 'blossom' | 'cat'   colour the eyebrow (default muted)
+//   intro?: string                muted paragraph under the title (or use the default slot for rich intro)
+//   align?: 'left' | 'center'     default 'left'
+//   level?: 1 | 2 | 3             heading level, default 2 (styled as h2 whatever the level)
+//   id?: string                   id on the heading (for aria-labelledby)
+//   class?: string
+// Renders <header class="section-head [section-head--center]"> ... </header>
+interface Props {
+  title: string;
+  eyebrow?: string;
+  eyebrowTone?: 'sage' | 'hen' | 'yolk' | 'sky' | 'blossom' | 'cat';
+  intro?: string;
+  align?: 'left' | 'center';
+  level?: 1 | 2 | 3;
+  id?: string;
+  class?: string;
+}
+
+const { title, eyebrow, eyebrowTone, intro, align = 'left', level = 2, id, class: className } = Astro.props;
+const Heading = `h${level}` as 'h1' | 'h2' | 'h3';
+const hasSlot = Astro.slots.has('default');
+---
+
+<header class:list={['section-head', { 'section-head--center': align === 'center' }, className]}>
+  {eyebrow && <p class:list={['eyebrow', eyebrowTone && `eyebrow--${eyebrowTone}`]}>{eyebrow}</p>}
+  <Heading class="section-head__title" id={id}>{title}</Heading>
+  {intro && <p class="section-head__intro">{intro}</p>}
+  {hasSlot && <div class="section-head__intro"><slot /></div>}
+</header>

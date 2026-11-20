@@ -1,0 +1,166 @@
+---
+// Site header: centred wordmark + sub-line (flanked by tiny sage sprigs; a small hen mark sits
+// beside the name on mobile instead), theme toggle, hairline nav row with a russet hand-drawn
+// stroke under the current page.
+// Desktop (>= 48em): the header is sticky with a negative top equal to --masthead-h, so the
+// wordmark row scrolls away and the nav row stays; .is-compact (set by an IntersectionObserver
+// on .header-sentinel) reveals a small wordmark on the left and moves the nav right.
+// Mobile (< 48em): slim sticky bar (wordmark, theme toggle, "Menu"); nav is a disclosure panel.
+// No props. Styles live in global.css section 10.
+import { stripBase, withBase } from '../lib/url';
+import { site } from '../data/site';
+import Hen from './illustrations/Hen.astro';
+import Sprig from './illustrations/Sprig.astro';
+
+const navItems = [
+  { label: 'Gallery', href: '/gallery/' },
+  { label: 'Commissions', href: '/commissions/' },
+  { label: 'About', href: '/about/' },
+  { label: 'Journal', href: '/journal/' },
+  ...(site.shopEnabled ? [{ label: 'Shop', href: '/shop/' }] : []),
+  { label: 'Contact', href: '/contact/' },
+];
+
+const currentPath = stripBase(Astro.url.pathname);
+const isCurrent = (href: string) => currentPath === href || currentPath.startsWith(href);
+---
+
+<div class="header-sentinel" aria-hidden="true" data-header-sentinel></div>
+<header class="site-header" data-site-header>
+  <div class="container masthead">
+    <a class="wordmark" href={withBase('/')}>
+      <span class="wordmark__name-row">
+        <Hen class="wordmark__mark" size={30} wash={false} strokeWidth={1.2} />
+        <span class="wordmark__name">{site.name}</span>
+      </span>
+      <span class="wordmark__sub">
+        <Sprig class="wordmark__sprig" orientation="left" size={34} wash={false} strokeWidth={1.1} />
+        Portrait and wildlife artist
+        <Sprig class="wordmark__sprig" orientation="right" size={34} wash={false} strokeWidth={1.1} />
+      </span>
+    </a>
+    <div class="masthead__tools">
+      <button class="theme-toggle" type="button" aria-pressed="false" aria-label="Dark theme" data-theme-toggle>
+        <svg class="theme-toggle__moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11Z"></path>
+        </svg>
+        <svg class="theme-toggle__sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="4"></circle>
+          <path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"></path>
+        </svg>
+      </button>
+      <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav" data-menu-toggle>
+        <span class="menu-toggle__icon" aria-hidden="true"></span>
+        Menu
+      </button>
+    </div>
+  </div>
+  <nav class="site-nav" id="site-nav" aria-label="Main" data-site-nav>
+    <div class="container site-nav__inner">
+      <a class="site-nav__brand" href={withBase('/')}>{site.name}</a>
+      <ul class="site-nav__list">
+        {
+          navItems.map((item) => (
+            <li>
+              <a href={withBase(item.href)} aria-current={isCurrent(item.href) ? 'page' : undefined}>
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </nav>
+</header>
+
+<script>
+  const root = document.documentElement;
+  const header = document.querySelector<HTMLElement>('[data-site-header]');
+  const sentinel = document.querySelector<HTMLElement>('[data-header-sentinel]');
+  const themeBtn = document.querySelector<HTMLButtonElement>('[data-theme-toggle]');
+  const menuBtn = document.querySelector<HTMLButtonElement>('[data-menu-toggle]');
+  const nav = document.querySelector<HTMLElement>('[data-site-nav]');
+
+  /* Theme toggle ---------------------------------------------------------- */
+  const themeColour = { light: '#F7F3EC', dark: '#1A1917' };
+  const darkQuery = window.matchMedia('(prefers-color-scheme: dark)');
+
+  function storedTheme(): string | null {
+    try {
+      return localStorage.getItem('theme');
+    } catch {
+      return null;
+    }
+  }
+
+  function applyTheme(theme: 'light' | 'dark', save: boolean) {
+    root.setAttribute('data-theme', theme);
+    themeBtn?.setAttribute('aria-pressed', String(theme === 'dark'));
+    if (save) {
+      try {
+        localStorage.setItem('theme', theme);
+      } catch {
+        /* storage unavailable: the choice lasts for this page only */
+      }
+      document.querySelectorAll('meta[name="theme-color"]').forEach((m) => m.setAttribute('content', themeColour[theme]));
+    }
+  }
+
+  applyTheme(root.getAttribute('data-theme') === 'dark' ? 'dark' : 'light', false);
+
+  themeBtn?.addEventListener('click', () => {
+    applyTheme(root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark', true);
+  });
+
+  // Follow OS changes until the visitor makes an explicit choice.
+  darkQuery.addEventListener('change', (e) => {
+    const s = storedTheme();
+    if (s !== 'light' && s !== 'dark') applyTheme(e.matches ? 'dark' : 'light', false);
+  });
+
+  /* Compact sticky header -------------------------------------------------- */
+  if (header && sentinel && 'IntersectionObserver' in window) {
+    new IntersectionObserver(([entry]) => {
+      header.classList.toggle('is-compact', !entry.isIntersecting);
+    }).observe(sentinel);
+  }
+
+  /* Mobile menu ----------------------------------------------------------- */
+  const mobile = window.matchMedia('(max-width: 47.999em)');
+
+  function setMenu(open: boolean, returnFocus = false) {
+    if (!menuBtn || !nav) return;
+    menuBtn.setAttribute('aria-expanded', String(open));
+    nav.classList.toggle('is-open', open);
+    if (!open && returnFocus) menuBtn.focus();
+  }
+
+  menuBtn?.addEventListener('click', () => {
+    const open = menuBtn.getAttribute('aria-expanded') !== 'true';
+    setMenu(open);
+    if (open) nav?.querySelector<HTMLAnchorElement>('a[href]:not(.site-nav__brand)')?.focus();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && menuBtn?.getAttribute('aria-expanded') === 'true') {
+      setMenu(false, true);
+    }
+  });
+
+  // Close when focus or a click leaves the header, or a link is chosen.
+  document.addEventListener('click', (e) => {
+    if (menuBtn?.getAttribute('aria-expanded') === 'true' && header && !header.contains(e.target as Node)) {
+      setMenu(false);
+    }
+  });
+  nav?.addEventListener('click', (e) => {
+    if ((e.target as Element).closest('a')) setMenu(false);
+  });
+  header?.addEventListener('focusout', (e) => {
+    const next = e.relatedTarget as Node | null;
+    if (mobile.matches && next && !header.contains(next)) setMenu(false);
+  });
+  mobile.addEventListener('change', (e) => {
+    if (!e.matches) setMenu(false);
+  });
+</script>

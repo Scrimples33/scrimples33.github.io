@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <style>
+    .bg { fill: #F7F3EC; } .rule { stroke: #E4DDD0; } .ink { fill: #2B2A27; } .dot { fill: #C98B5E; }
+    @media (prefers-color-scheme: dark) {
+      .bg { fill: #1A1917; } .rule { stroke: #34322E; } .ink { fill: #ECE6DA; } .dot { fill: #DDA67C; }
+    }
+  </style>
+  <rect class="bg" width="64" height="64" rx="6"/>
+  <rect class="rule" x="4.5" y="4.5" width="55" height="55" rx="3" fill="none" stroke-width="1"/>
+  <!-- Serif capital A with a hairline crossbar and bracketed feet, Cormorant-like -->
+  <path class="ink" d="M31 11.5h2.2l12.6 34.6c.8 2.2 1.7 3 3.7 3.2V51H37.6v-1.7c2.4-.1 3.1-.8 2.5-2.6l-2.9-8.2H25.6l-2.7 7.6c-.8 2.3.1 3.1 2.8 3.2V51H15.2v-1.7c2-.2 3-1 3.9-3.4L31 11.5Zm-4.7 25.3h10.2L31.3 22.3l-5 14.5Z"/>
+</svg>
