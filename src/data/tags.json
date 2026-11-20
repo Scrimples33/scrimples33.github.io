@@ -1,6 +1,22 @@
 [
-  { "name": "Botanical", "description": "Plants and flowers.", "colour": "sage" },
-  { "name": "Portraits", "description": "Portraits of people.", "colour": "blossom" },
-  { "name": "Pets", "description": "Pet portraits.", "colour": "yolk" },
-  { "name": "Wildlife", "description": "Wild animals.", "colour": "hen" }
+  {
+    "name": "Pets",
+    "description": "Pet portraits.",
+    "colour": "yolk"
+  },
+  {
+    "name": "Portraits",
+    "description": "Portraits of people.",
+    "colour": "blossom"
+  },
+  {
+    "name": "Wildlife",
+    "description": "Wild animals.",
+    "colour": "hen"
+  },
+  {
+    "name": "Botanical",
+    "description": "Plants and flowers.",
+    "colour": "sage"
+  }
 ]
