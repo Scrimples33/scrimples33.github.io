@@ -65,7 +65,8 @@ const lowerShell =
     display: inline-grid;
     place-items: end center;
     height: var(--hatch-h);
-    color: var(--hen-ink);
+    /* Lines sit on the pale shell and chick; --egg-line (dark mode only) keeps them readable. */
+    color: var(--egg-line, var(--hen-ink));
   }
 
   .hatch svg {
@@ -90,7 +91,7 @@ const lowerShell =
 
   .hatch__beak {
     fill: var(--hen);
-    stroke: var(--hen-ink);
+    stroke: var(--egg-line, var(--hen-ink));
   }
 
   .hatch__eye {
@@ -99,6 +100,7 @@ const lowerShell =
   }
 
   .hatch :global(.hatch__hen) {
+    color: var(--hen-ink); /* the hen stands on the background, not on a shell */
     max-height: var(--hatch-h);
     width: auto;
   }

@@ -131,6 +131,7 @@
   --egg-cream: #e4d5b8;
   --egg-blue: #a9c8c4;
   --egg-speckle: #7b4a2e;
+  --egg-line: #6e4329; /* dark pencil line over the pale shells */
 }
 
 /* No-JS fallback: follow the OS unless light was explicitly chosen. */
@@ -171,6 +172,7 @@
     --egg-cream: #e4d5b8;
     --egg-blue: #a9c8c4;
     --egg-speckle: #7b4a2e;
+    --egg-line: #6e4329;
   }
 }
 
@@ -1569,6 +1571,11 @@ a.cat-chip:hover,
 .ill-egg .ill-wash--yolk { fill: var(--egg-cream, color-mix(in srgb, var(--yolk) calc(30% * var(--wash, 1)), transparent)); }
 .ill-egg .ill-wash--sky { fill: var(--egg-blue, color-mix(in srgb, var(--sky) calc(28% * var(--wash, 1)), transparent)); }
 .ill-egg .ill-speckle { fill: var(--egg-speckle, var(--hen)); }
+/* In dark mode the shells are pale, so their lines switch to a dark pencil colour to stay visible. */
+:root[data-theme='dark'] .ill-egg { color: var(--egg-line); }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .ill-egg { color: var(--egg-line); }
+}
 .ill-fill--hen { fill: var(--hen); opacity: 0.8; }
 .ill-fill--yolk { fill: var(--yolk); opacity: 0.85; }
 
