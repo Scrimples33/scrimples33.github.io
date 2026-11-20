@@ -124,7 +124,8 @@
   --mat: #25231f;
   --mat-rule: #3a3731;
   --muted-tint: #aba597;
-  --wash: 0.7; /* illustration washes are lighter on the dark wall */
+  --wash: 2.2; /* illustration fills stay properly coloured on the dark wall */
+  --speckle: 0.8;
 }
 
 /* No-JS fallback: follow the OS unless light was explicitly chosen. */
@@ -159,7 +160,8 @@
     --mat: #25231f;
     --mat-rule: #3a3731;
     --muted-tint: #aba597;
-    --wash: 0.7;
+    --wash: 2.2;
+    --speckle: 0.8;
   }
 }
 
@@ -1544,7 +1546,7 @@ a.cat-chip:hover,
 .ill-soft { stroke-opacity: 0.6; }
 .ill-ghost { stroke-opacity: 0.28; }
 .ill-dot { fill: currentColor; stroke: none; }
-.ill-speckle { fill: var(--hen); opacity: 0.55; }
+.ill-speckle { fill: var(--hen); opacity: var(--speckle, 0.55); }
 
 .ill-wash,
 .ill-fill { stroke: none; }
