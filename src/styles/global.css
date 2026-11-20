@@ -126,6 +126,11 @@
   --muted-tint: #aba597;
   --wash: 2.2; /* illustration fills stay properly coloured on the dark wall */
   --speckle: 0.8;
+  /* Eggs are pale in real life, so in the dark they get solid light shells, not dark tints. */
+  --egg-brown: #c9a383;
+  --egg-cream: #e4d5b8;
+  --egg-blue: #a9c8c4;
+  --egg-speckle: #7b4a2e;
 }
 
 /* No-JS fallback: follow the OS unless light was explicitly chosen. */
@@ -162,6 +167,10 @@
     --muted-tint: #aba597;
     --wash: 2.2;
     --speckle: 0.8;
+    --egg-brown: #c9a383;
+    --egg-cream: #e4d5b8;
+    --egg-blue: #a9c8c4;
+    --egg-speckle: #7b4a2e;
   }
 }
 
@@ -1555,6 +1564,11 @@ a.cat-chip:hover,
 .ill-wash--yolk { fill: color-mix(in srgb, var(--yolk) calc(30% * var(--wash, 1)), transparent); }
 .ill-wash--sky { fill: color-mix(in srgb, var(--sky) calc(28% * var(--wash, 1)), transparent); }
 .ill-wash--blossom { fill: color-mix(in srgb, var(--blossom) calc(30% * var(--wash, 1)), transparent); }
+/* Egg shells: the --egg-* colours are only set in dark mode; light mode keeps the soft tints. */
+.ill-egg .ill-wash--hen { fill: var(--egg-brown, color-mix(in srgb, var(--hen) calc(24% * var(--wash, 1)), transparent)); }
+.ill-egg .ill-wash--yolk { fill: var(--egg-cream, color-mix(in srgb, var(--yolk) calc(30% * var(--wash, 1)), transparent)); }
+.ill-egg .ill-wash--sky { fill: var(--egg-blue, color-mix(in srgb, var(--sky) calc(28% * var(--wash, 1)), transparent)); }
+.ill-egg .ill-speckle { fill: var(--egg-speckle, var(--hen)); }
 .ill-fill--hen { fill: var(--hen); opacity: 0.8; }
 .ill-fill--yolk { fill: var(--yolk); opacity: 0.85; }
 

@@ -39,7 +39,6 @@ const legs = [
 ];
 
 const stand = {
-  wash: 'M38 33C47 42 60 44 70 41.6C79 39.6 87 30 91 20.5C93 14.4 96.8 10.6 100.6 9.6C99.6 13.6 100.4 16.8 102.6 18.6C104.6 15.2 107.8 13.2 110.8 13C108.6 17 107.6 21.2 107.8 25.6C108.6 38.4 106 51 98.6 60C92 71 80 79 64 80.4C47 82 31 76 25 64C20.6 55 21 46 24.6 40C24 33 27 26 33 24.4C37 25.6 39.4 29 38 33Z',
   back: 'M38.2 33.4C45 40.8 57.6 44.4 68.6 42.2C78.6 40.2 86.6 31 91 20.5',
   ghost: 'M44 38.6C52 42.8 61.4 43.6 69.4 41.6',
   front: 'M33.8 72.6C28.2 68 24.4 61.2 23.4 54C22.6 48.4 23.2 43.8 24.8 40.2',
@@ -52,7 +51,6 @@ const stand = {
 };
 
 const peck = {
-  wash: 'M21 69C30 57 44 46 62 44C76 42.4 86 31 91 20.5C93 14.4 96.8 10.6 100.6 9.6C99.6 13.6 100.4 16.8 102.6 18.6C104.6 15.2 107.8 13.2 110.8 13C108.6 17 107.6 21.2 107.8 25.6C108.6 38.4 106 51 98.6 60C92 71 80 79 64 80.4C51 81.6 40 80 32 76C28 74.8 24 76.4 20.4 79.6C14 82 10 79 11 74.6C12 70.6 17 68 21 69Z',
   back: 'M21.4 69.4C30 57.4 44.6 46.2 61.8 44.2C76.4 42.4 86 31.8 91 20.5',
   ghost: 'M30 60.4C38 52.6 48.4 46.8 60.4 45',
   front: 'M33.8 72.6C30.8 74.6 27.2 75.6 23.6 77.6',
@@ -65,6 +63,16 @@ const peck = {
 };
 
 const p = pose === 'peck' ? peck : stand;
+
+// The body colour fills the hen's own outline: the outline pieces meet end to end, so joining them
+// (dropping each piece's opening "M x y") gives one closed shape that covers her completely.
+const join = (d: string) => d.replace(/^M[\d.-]+ [\d.-]+/, '');
+// In the pecking pose the head runs the other way round, so it is reversed here.
+const peckHeadBack = 'C22 78.6 20.2 79.6 18 80.2C13.6 81.4 10.2 78.4 11.2 74.4C12.4 70 17 67.6 21.4 69.4';
+const body =
+  pose === 'peck'
+    ? peck.back + join(tail) + join(underside) + join(peck.front) + peckHeadBack + 'Z'
+    : stand.front + join(stand.head) + join(stand.back) + join(tail) + join(underside) + 'Z';
 const flipT = flip ? 'translate(120 0) scale(-1 1)' : undefined;
 ---
 
@@ -82,7 +90,7 @@ const flipT = flip ? 'translate(120 0) scale(-1 1)' : undefined;
   style={style}
 >
   <g transform={flipT}>
-    {wash && <path class="ill-wash ill-wash--hen" d={p.wash} transform="translate(1.6 1.4)" />}
+    {wash && <path class="ill-wash ill-wash--hen" d={body} />}
     {wash && <path class="ill-fill ill-fill--hen" d={p.comb + 'Z'} />}
     {wash && <path class="ill-fill ill-fill--hen" d={p.wattle + 'Z'} />}
     <path d={p.back} />

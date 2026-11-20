@@ -49,7 +49,7 @@ const dots = [
   style={style}
 >
   <g transform={tilt ? `rotate(${tilt} 20 26)` : undefined}>
-    {wash && <path class:list={['ill-wash', `ill-wash--${washTone}`]} d={fill} transform="translate(1.2 1)" />}
+    {wash && <path class:list={['ill-wash', `ill-wash--${washTone}`]} d={fill} />}
     <path d={shell} />
     <path class="ill-ghost" d="M8.4 33.6C9.4 39.4 13.4 43.2 18.6 44" />
     {
