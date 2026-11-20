@@ -44,16 +44,12 @@ Anywhere the site needs Anne's own words there's a dashed "To fill in" box
 - About: her story, the process captions and photos, and the bit about life away from the easel.
 - Commissions: the prices are examples (set `pricesNote` to an empty string once they're real), plus some of the
   steps, the timescale, the small print and the FAQ answers.
-- Contact: the reply time, and the email address and Facebook link in `src/data/site.ts`.
+- Contact: the Facebook link in `src/data/site.ts`.
 - Journal: the two sample posts.
 - Artwork dates were worked out from Instagram, so some are approximate.
 
 ## Contact form
 
-The form doesn't send anything itself. When someone presses Send it opens their email app with the message ready to
-go, addressed to the email in `src/data/site.ts`. The button stays switched off until that address is filled in.
-
-## Shop
-
-Turn it on by setting `shopEnabled: true` in `src/data/site.ts`. The simplest way to take payments from a static
-site is Stripe Payment Links: one link per print, with a "Buy" button on the shop page.
+The form sends through [Formspree](https://formspree.io). Put the form's address in `formEndpoint` in
+`src/data/site.ts` and messages arrive by email at the address the Formspree form was set up with. If `formEndpoint`
+is empty, pressing Send opens the visitor's email app with the message filled in instead.

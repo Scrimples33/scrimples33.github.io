@@ -5,6 +5,7 @@ import { withBase } from '../lib/url';
 import Placeholder from '../components/Placeholder.astro';
 import Flower from '../components/illustrations/Flower.astro';
 
+const hasEndpoint = Boolean(site.formEndpoint);
 const enquiryTypes = ['Commission', 'Original artwork', 'Prints', 'Other'];
 const sizes = ['A5', 'A4', 'A3', 'Not sure yet'];
 ---
@@ -56,10 +57,20 @@ const sizes = ['A5', 'A4', 'A3', 'Not sure yet'];
         </p>
       </div>
 
-      {/* The form doesn't post anywhere: Send opens the visitor's email app with a message to Anne,
-          built from the boxes below (see the script at the bottom). */}
+      {/* With site.formEndpoint set, the form posts to Formspree (see the script at the bottom).
+          Without it, Send opens the visitor's email app with the message filled in. */}
       <div class="contact__action">
-            <form class="form contact-form" novalidate data-contact-form>
+            <form
+              class="form contact-form"
+              novalidate
+              data-contact-form
+              method={hasEndpoint ? 'post' : undefined}
+              action={hasEndpoint ? site.formEndpoint : undefined}
+            >
+              <input type="hidden" name="_subject" value="New enquiry from annewilliamson.art" data-subject />
+              <div class="visually-hidden" aria-hidden="true">
+                <label>Leave this empty <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" /></label>
+              </div>
               <div class="form__row form__row--2">
                 <div class="form__field">
                   <label for="cf-name">Your name</label>
@@ -111,13 +122,22 @@ const sizes = ['A5', 'A4', 'A3', 'Not sure yet'];
               </div>
 
               <div class="contact-form__submit">
-                <button class="btn btn--solid" type="submit" disabled={!site.email || undefined}>Send message</button>
+                <button
+                  class="btn btn--solid"
+                  type="submit"
+                  data-send
+                  disabled={(!hasEndpoint && !site.email) || undefined}
+                >
+                  Send message
+                </button>
                 <p class="form__note">
-                  This opens your email app with the message ready to send. No need to attach photos yet; they can be
-                  sent afterwards.
+                  {hasEndpoint
+                    ? 'No need to attach photos yet; they can be sent by email afterwards.'
+                    : 'This opens your email app with the message ready to send. No need to attach photos yet; they can be sent afterwards.'}
                 </p>
+                <p class="form__status" role="status" aria-live="polite" data-status hidden></p>
               </div>
-              {!site.email && (
+              {!hasEndpoint && !site.email && (
                 <Placeholder prompt="Add the email address (email in src/data/site.ts). Until then the Send button is switched off." />
               )}
             </form>
@@ -126,10 +146,11 @@ const sizes = ['A5', 'A4', 'A3', 'Not sure yet'];
   </div>
 </BaseLayout>
 
-<script define:vars={{ email: site.email }}>
+<script define:vars={{ email: site.email, endpoint: site.formEndpoint }}>
   // 1. Prefill from ?about= and ?details= (links from the gallery and the commissions estimator).
   //    about=commission (or details on its own) means a commission; anything else is an artwork title.
-  // 2. On Send, open the visitor's email app with a message to Anne built from the form.
+  // 2. On Send: post to Formspree if there is an endpoint, otherwise open the visitor's email app
+  //    with a message to Anne built from the form.
   (function () {
     var params = new URLSearchParams(location.search);
     var about = (params.get('about') || '').trim().slice(0, 200);
@@ -173,14 +194,53 @@ const sizes = ['A5', 'A4', 'A3', 'Not sure yet'];
     select.addEventListener('change', sync);
     sync();
 
+    var value = function (name) {
+      var el = form.elements[name];
+      return el && !el.disabled ? String(el.value || '').trim() : '';
+    };
+    var status = form.querySelector('[data-status]');
+    var sendButton = form.querySelector('[data-send]');
+    var subjectField = form.querySelector('[data-subject]');
+
+    var showStatus = function (state, text) {
+      status.hidden = false;
+      status.dataset.state = state;
+      status.textContent = text;
+    };
+
     form.addEventListener('submit', function (e) {
       e.preventDefault();
-      if (!email || !form.reportValidity()) return;
+      if (!form.reportValidity()) return;
 
-      var value = function (name) {
-        var el = form.elements[name];
-        return el && !el.disabled ? String(el.value || '').trim() : '';
-      };
+      // Posting to Formspree.
+      if (endpoint) {
+        subjectField.value = value('enquiry') + ' enquiry from ' + value('name');
+        var label = sendButton.textContent;
+        sendButton.disabled = true;
+        sendButton.textContent = 'Sending…';
+        status.hidden = true;
+        fetch(endpoint, { method: 'POST', body: new FormData(form), headers: { Accept: 'application/json' } })
+          .then(function (res) {
+            if (res.ok) {
+              form.reset();
+              sync();
+              showStatus('ok', 'Thank you, your message has been sent.');
+            } else {
+              throw new Error('not ok');
+            }
+          })
+          .catch(function () {
+            showStatus('error', 'Sorry, that did not send. You can email ' + email + ' instead.');
+          })
+          .then(function () {
+            sendButton.disabled = false;
+            sendButton.textContent = label;
+          });
+        return;
+      }
+
+      // No endpoint: open the email app.
+      if (!email) return;
 
       // The message first, then the contact details and any extra boxes that were filled in.
       var lines = [value('message'), '', '---', 'Name: ' + value('name'), 'Email: ' + value('email')];
@@ -260,6 +320,22 @@ const sizes = ['A5', 'A4', 'A3', 'Not sure yet'];
   .contact-form button[disabled] {
     opacity: 0.5;
     cursor: not-allowed;
+  }
+
+  .form__status {
+    margin: 0;
+    padding: 0.7rem 1rem;
+    border-left: 3px solid var(--sage);
+    background: var(--surface);
+    font-size: var(--text-small);
+  }
+
+  .form__status[data-state='error'] {
+    border-left-color: var(--hen);
+  }
+
+  .form__status[hidden] {
+    display: none;
   }
 
   .photo-note {
