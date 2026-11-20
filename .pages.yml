@@ -102,27 +102,27 @@ content:
         default: sage
         options:
           values:
-            - { value: sage, label: Sage green }
-            - { value: hen, label: Hen russet }
-            - { value: yolk, label: Egg-yolk yellow }
-            - { value: sky, label: Duck-egg blue }
-            - { value: blossom, label: Blossom pink }
-            - { value: moss, label: Moss green }
-            - { value: fern, label: Fern green }
-            - { value: mint, label: Mint }
-            - { value: teal, label: Teal }
-            - { value: cornflower, label: Cornflower blue }
-            - { value: lavender, label: Lavender }
-            - { value: heather, label: Heather purple }
-            - { value: rose, label: Rose red }
-            - { value: poppy, label: Poppy red }
-            - { value: apricot, label: Apricot }
-            - { value: marigold, label: Marigold orange }
-            - { value: mustard, label: Mustard }
-            - { value: bark, label: Bark brown }
-            - { value: chestnut, label: Chestnut }
-            - { value: slate, label: Slate grey }
-            - { value: stone, label: Stone }
+            - { value: sage, label: "Sage green #7E9A72" }
+            - { value: hen, label: "Hen russet #B5653A" }
+            - { value: yolk, label: "Egg-yolk yellow #D9A441" }
+            - { value: sky, label: "Duck-egg blue #5E9FA0" }
+            - { value: blossom, label: "Blossom pink #D58A94" }
+            - { value: moss, label: "Moss green #6F7F3A" }
+            - { value: fern, label: "Fern green #4F8A5B" }
+            - { value: mint, label: "Mint #6FB3A0" }
+            - { value: teal, label: "Teal #2F8A86" }
+            - { value: cornflower, label: "Cornflower blue #5B7FC0" }
+            - { value: lavender, label: "Lavender #9A88C4" }
+            - { value: heather, label: "Heather purple #8E5A86" }
+            - { value: rose, label: "Rose red #B84A5A" }
+            - { value: poppy, label: "Poppy red #D2553A" }
+            - { value: apricot, label: "Apricot #E09A5B" }
+            - { value: marigold, label: "Marigold orange #E07B28" }
+            - { value: mustard, label: "Mustard #C4A93A" }
+            - { value: bark, label: "Bark brown #8A6A4A" }
+            - { value: chestnut, label: "Chestnut #9B4F2E" }
+            - { value: slate, label: "Slate grey #6E7780" }
+            - { value: stone, label: "Stone #A39A88" }
 
   - name: settings
     label: Site settings
