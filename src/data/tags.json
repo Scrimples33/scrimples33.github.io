@@ -1,22 +1,22 @@
 [
   {
     "name": "Pets",
-    "description": "Pet portraits.",
+    "description": "",
     "colour": "yolk"
   },
   {
     "name": "Portraits",
-    "description": "Portraits of people.",
+    "description": "",
     "colour": "blossom"
   },
   {
     "name": "Wildlife",
-    "description": "Wild animals.",
+    "description": "",
     "colour": "hen"
   },
   {
     "name": "Botanical",
-    "description": "Plants and flowers.",
+    "description": "",
     "colour": "sage"
   }
 ]

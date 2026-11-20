@@ -94,7 +94,7 @@ content:
         label: Short description
         type: string
         required: false
-        description: "Shown on the home page if this tag has no real pictures yet"
+        description: "Optional. Shown under the tag name on the gallery page, e.g. to explain the idea behind it. Leave blank for none."
       - name: colour
         label: Colour
         type: select

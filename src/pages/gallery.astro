@@ -110,7 +110,7 @@ const leopard = ordered.find((a) => a.id === 'leopard') ?? ordered[0];
         sections.map((s) => (
           <section class="gallery-section" id={s.id} aria-labelledby={`h-${s.id}`} data-gallery-section data-tone={s.tone}>
             <div class="gallery-section__head">
-              <SectionHead title={s.label} id={`h-${s.id}`} />
+              <SectionHead title={s.label} id={`h-${s.id}`} intro={s.blurb || undefined} />
               {/* One small line drawing per tag, chosen by and tinted with the tag's colour (decorative). */}
               <span class="gallery-section__motif" aria-hidden="true">
                 {toneMotif(s.tone) === 'sprig' && <Sprig size={34} />}
