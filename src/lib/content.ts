@@ -1,5 +1,5 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
-import { categories, type CategoryId } from '../data/categories';
+import { tags, findTag, type Tag } from '../data/tags';
 import settingsJson from '../data/settings.json';
 import { withBase } from './url';
 
@@ -34,20 +34,35 @@ export async function getArtworks(): Promise<Artwork[]> {
   return works.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
 }
 
-/** Artworks in one category, newest first. */
-export async function getArtworksInCategory(id: CategoryId): Promise<Artwork[]> {
-  return (await getArtworks()).filter((a) => a.data.category === id);
+/** An artwork's tags (duplicates removed), in the order they were typed. The first is its main tag. */
+export function artworkTags(artwork: Artwork): Tag[] {
+  const out: Tag[] = [];
+  for (const name of artwork.data.tags) {
+    const tag = findTag(name);
+    if (tag.id && !out.some((t) => t.id === tag.id)) out.push(tag);
+  }
+  return out;
 }
 
+/** The tag that sets an artwork's colour (its first tag). */
+export const mainTag = (artwork: Artwork): Tag => artworkTags(artwork)[0] ?? findTag('Gallery');
+
 /**
- * Every category (in the order of src/data/categories.ts) with its artworks, newest first.
- * Categories with no artworks are included with an empty list.
+ * Every tag that has at least one artwork, with those artworks (newest first).
+ * Order: the tag list in src/data/tags.json, then any tag used on an artwork but missing
+ * from the list (alphabetically). Tags with no artworks are left out.
  */
-export async function getArtworksByCategory() {
+export async function getArtworksByTag(): Promise<(Tag & { artworks: Artwork[] })[]> {
   const works = await getArtworks();
-  return categories.map((category) => ({
-    ...category,
-    artworks: works.filter((a) => a.data.category === category.id),
+  const used = new Map<string, Tag>();
+  for (const w of works) for (const t of artworkTags(w)) if (!used.has(t.id)) used.set(t.id, t);
+  const listed = tags.filter((t) => used.has(t.id));
+  const extra = [...used.values()]
+    .filter((t) => !tags.some((l) => l.id === t.id))
+    .sort((a, b) => a.label.localeCompare(b.label));
+  return [...listed, ...extra].map((tag) => ({
+    ...tag,
+    artworks: works.filter((w) => artworkTags(w).some((t) => t.id === tag.id)),
   }));
 }
 

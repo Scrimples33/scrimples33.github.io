@@ -1,6 +1,7 @@
 ---
 title: "Dying Rose"
-category: botanical
+tags:
+  - Botanical
 date: 2024-10-10
 medium: "Colour pencil on Strathmore hot-pressed watercolour paper"
 description: "A dying rose taken from my garden, which I worked on for weeks. I loved using colours I don't usually use. I think things are far more interesting and beautiful when they are decaying. Polychromos, Luminance, Derwent Lightfast and a couple of Pablos."

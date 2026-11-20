@@ -1,6 +1,7 @@
 ---
 title: "Leopard"
-category: wildlife
+tags:
+  - Wildlife
 date: 2022-04-28
 medium: "Polychromos and Pablo colour pencils on Pastelmat"
 description: "It was a lovely piece to do. Inspired by a photograph by NL from Ukraine."

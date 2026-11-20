@@ -16,7 +16,7 @@ import { site } from '../data/site';
 import {
   artworkUrl,
   getArtworks,
-  getArtworksByCategory,
+  getArtworksByTag,
   getPublishedPosts,
   type Artwork,
 } from '../lib/content';
@@ -35,9 +35,9 @@ const bandArt =
   all.find(isReal) ??
   all[0];
 
-// Category panels: the newest real (non-placeholder) work in each category. A category with
-// only placeholders (or nothing yet) gets a quiet text panel with its blurb instead of a fake image.
-const panels = (await getArtworksByCategory()).map((c) => ({
+// Tag panels: one per tag that has any artwork (same order as the gallery tabs), each showing the
+// newest real (non-placeholder) work with that tag. Only placeholders gets a quiet text panel instead.
+const panels = (await getArtworksByTag()).map((c) => ({
   ...c,
   cover: c.artworks.find(isReal),
   count: c.artworks.length,
@@ -109,7 +109,7 @@ const posts = (await getPublishedPosts()).slice(0, 3);
     </div>
   </section>
 
-  <!-- 3. The gallery: one image-led panel per category -->
+  <!-- 3. The gallery: one image-led panel per tag -->
   <section class="section" aria-labelledby="gallery-title">
     <div class="container">
       <div class="head-row">
@@ -122,7 +122,7 @@ const posts = (await getPublishedPosts()).slice(0, 3);
         {
           panels.map((p) => (
             <li>
-              <a class="panel" href={withBase(`/gallery/#${p.id}`)} data-category={p.id}>
+              <a class="panel" href={withBase(`/gallery/#${p.id}`)} data-tone={p.tone}>
                 {p.cover ? (
                   <span class="mat mat--crop panel__mat" style="--ratio: 4 / 5">
                     <Image

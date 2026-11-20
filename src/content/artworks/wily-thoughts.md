@@ -1,6 +1,7 @@
 ---
 title: "Wily Thoughts"
-category: wildlife
+tags:
+  - Wildlife
 date: 2023-06-01
 medium: "Colour pencil"
 description: "Highly Commended in the RBSA Summer Show 2023."

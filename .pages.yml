@@ -16,7 +16,7 @@ content:
     format: yaml-frontmatter
     filename: "{primary}.md"
     view:
-      fields: [title, category, date]
+      fields: [title, tags, date]
       sort: date
       direction: desc
     fields:
@@ -24,16 +24,13 @@ content:
         label: Title
         type: string
         required: true
-      - name: category
-        label: Gallery section
-        type: select
+      - name: tags
+        label: Tags
+        type: string
+        list:
+          min: 1
         required: true
-        options:
-          values:
-            - { value: botanical, label: Botanical }
-            - { value: portraits, label: Portraits }
-            - { value: pets, label: Pets }
-            - { value: wildlife, label: Wildlife }
+        description: "Which gallery tabs this picture appears under, e.g. Botanical. Use the names from 'Gallery tags'. The first tag sets its colour."
       - name: date
         label: Date finished
         type: date
@@ -80,6 +77,36 @@ content:
             - { value: sold, label: Sold }
             - { value: commission, label: Private commission }
             - { value: nfs, label: Not for sale }
+
+  - name: tags
+    label: Gallery tags
+    type: file
+    path: src/data/tags.json
+    format: json
+    list: true
+    fields:
+      - name: name
+        label: Tag name
+        type: string
+        required: true
+        description: "Shown as a tab on the gallery page. Tabs follow the order of this list. A tag with no pictures is hidden."
+      - name: description
+        label: Short description
+        type: string
+        required: false
+        description: "Shown on the home page if this tag has no real pictures yet"
+      - name: colour
+        label: Colour
+        type: select
+        required: true
+        default: sage
+        options:
+          values:
+            - { value: sage, label: Green }
+            - { value: hen, label: Russet }
+            - { value: yolk, label: Yellow }
+            - { value: sky, label: Blue }
+            - { value: blossom, label: Pink }
 
   - name: settings
     label: Site settings

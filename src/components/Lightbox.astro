@@ -8,7 +8,7 @@
 // Controls: prev/next, close, ←/→/Esc, swipe (pointer events, 40px), click on empty stage closes.
 import { getImage } from 'astro:assets';
 import { categories } from '../data/categories';
-import { availabilityLabels, type Artwork } from '../lib/content';
+import { artworkTags, availabilityLabels, mainTag, type Artwork } from '../lib/content';
 import { formatMonthYear } from '../lib/format';
 import { withBase } from '../lib/url';
 
@@ -17,18 +17,19 @@ interface Props {
 }
 
 const { artworks } = Astro.props;
-const categoryLabel = Object.fromEntries(categories.map((c) => [c.id, c.label])) as Record<string, string>;
 
 const items = await Promise.all(
-  artworks.map(async ({ id, data }) => {
+  artworks.map(async (artwork) => {
+    const { id, data } = artwork;
     const img = await getImage({ src: data.image, width: 2000, widths: [800, 1200, 1600, 2000] });
     const width = Number(img.attributes.width ?? data.image.width);
     const height = Number(img.attributes.height ?? data.image.height);
     return {
       id,
       title: data.title,
-      category: categoryLabel[data.category] ?? data.category,
-      categoryId: data.category,
+      // Eyebrow: all of the artwork's tags; colour from its main tag.
+      category: artworkTags(artwork).map((t) => t.label).join(' · '),
+      tone: mainTag(artwork).tone,
       description: data.description,
       date: formatMonthYear(data.date),
       medium: data.medium,
@@ -114,7 +115,7 @@ const chevron = (d: string) =>
     id: string;
     title: string;
     category: string;
-    categoryId: string;
+    tone: string;
     description: string;
     date: string;
     medium: string;
@@ -186,7 +187,7 @@ const chevron = (d: string) =>
 
       el.index.textContent = String(i + 1);
       el.category.textContent = item.category;
-      info.dataset.category = item.categoryId; // colour-codes the eyebrow (var(--cat-ink))
+      info.dataset.tone = item.tone; // colour-codes the eyebrow (var(--cat-ink))
       el.title.textContent = item.title;
       el.desc.textContent = item.description;
       el.desc.hidden = !item.description;

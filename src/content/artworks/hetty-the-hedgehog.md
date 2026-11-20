@@ -1,6 +1,7 @@
 ---
 title: "Hetty the Hedgehog"
-category: wildlife
+tags:
+  - Wildlife
 date: 2020-05-01
 medium: "Faber-Castell Polychromos and Derwent Lightfast on Bristol vellum 400 series"
 description: "Hetty the hedgehog."

@@ -1,6 +1,7 @@
 ---
 title: "Chimpanzee"
-category: wildlife
+tags:
+  - Wildlife
 date: 2023-11-02
 medium: "Colour pencil on Grafix film"
 description: "I love chimps and really enjoyed doing this piece. Inspired by a photograph by the very talented Edwin Butter."

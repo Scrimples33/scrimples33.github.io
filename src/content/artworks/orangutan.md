@@ -1,6 +1,7 @@
 ---
 title: "Orangutan"
-category: wildlife
+tags:
+  - Wildlife
 date: 2021-02-01
 medium: "Colour pencil"
 description: "This one was fun. I love all apes and monkeys."

@@ -1,7 +1,6 @@
 import { defineCollection } from 'astro:content';
 import { glob } from 'astro/loaders';
 import { z } from 'astro/zod';
-import { categoryIds } from './data/categories';
 
 const posts = defineCollection({
   loader: glob({ pattern: '**/*.md', base: './src/content/posts' }),
@@ -27,7 +26,8 @@ const artworks = defineCollection({
   schema: ({ image }) =>
     z.object({
       title: z.string(),
-      category: z.enum(categoryIds),
+      // Tag names from src/data/tags.json (any spelling/case). At least one.
+      tags: z.array(z.string()).min(1),
       date: z.coerce.date(),
       medium: z.string(),
       size: z.string().optional(),

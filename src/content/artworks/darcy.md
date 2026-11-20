@@ -1,6 +1,7 @@
 ---
 title: "Darcy"
-category: pets
+tags:
+  - Pets
 date: 2021-04-08
 medium: "Faber-Castell Polychromos on Bristol vellum"
 description: "Our own little munchkin. He showed up on our doorstep injured and very skinny. His name is Darcy, but he mostly gets called Fluff."

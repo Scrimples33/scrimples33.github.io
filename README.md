@@ -17,7 +17,8 @@ npm run build
 
 Sign in to Pages CMS with GitHub, choose this repository, then use:
 
-- **Gallery artworks** to add or change a piece (photo, section, date, medium, description).
+- **Gallery artworks** to add or change a piece (photo, tags, date, medium, description).
+- **Gallery tags** to add, rename, recolour or reorder the gallery tabs.
 - **Journal posts** to write a post.
 - **Site settings** to open or close commissions and change the status line.
 
@@ -31,9 +32,17 @@ Saving commits to `main`, and GitHub Actions rebuilds the site in about a minute
 | Journal posts | `src/content/posts/` (images in `src/assets/posts/`) |
 | Email, Instagram, Facebook, contact form, shop on/off | `src/data/site.ts` |
 | Commission prices, steps, papers and FAQ | `src/data/commissions.ts` |
-| Gallery sections | `src/data/categories.ts` |
+| Gallery tags (tab order, descriptions, colours) | `src/data/tags.json` |
 | Colours and fonts | top of `src/styles/global.css` |
 | CMS fields | `.pages.yml` |
+
+## Gallery tags
+
+Each artwork has one or more tags, and each tag with at least one picture gets its own tab on the gallery page
+(and a panel on the home page). Tabs follow the order of the list in **Gallery tags**; a tag with no pictures
+is hidden. A picture with several tags shows under each of them. The first tag on a picture sets its colour.
+Tag names match however they're typed ("Dying plants" = "dying plants"), and a tag used on a picture but
+missing from the list still gets a tab, at the end.
 
 ## Still to fill in
 

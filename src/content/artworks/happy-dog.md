@@ -1,6 +1,7 @@
 ---
 title: "Staffy"
-category: pets
+tags:
+  - Pets
 date: 2024-02-01
 medium: "Colour pencil"
 description: "A pet commission. How adorable is he? He was a pleasure to draw."

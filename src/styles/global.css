@@ -176,17 +176,18 @@
   }
 }
 
-/* Category colours. Put data-category="botanical|portraits|pets|wildlife" on any element and use
-   var(--cat), var(--cat-soft), var(--cat-ink) inside it. Outside a category they fall back to sage. */
+/* Tag colours. Put data-tone="sage|hen|yolk|sky|blossom" (a tag's colour) on any element and use
+   var(--cat), var(--cat-soft), var(--cat-ink) inside it. Without a tone they fall back to sage. */
 :root,
-[data-category] {
+[data-tone] {
   --cat: var(--sage);
   --cat-soft: var(--sage-soft);
   --cat-ink: var(--sage-ink);
 }
-[data-category='portraits'] { --cat: var(--blossom); --cat-soft: var(--blossom-soft); --cat-ink: var(--blossom-ink); }
-[data-category='pets'] { --cat: var(--yolk); --cat-soft: var(--yolk-soft); --cat-ink: var(--yolk-ink); }
-[data-category='wildlife'] { --cat: var(--hen); --cat-soft: var(--hen-soft); --cat-ink: var(--hen-ink); }
+[data-tone='hen'] { --cat: var(--hen); --cat-soft: var(--hen-soft); --cat-ink: var(--hen-ink); }
+[data-tone='yolk'] { --cat: var(--yolk); --cat-soft: var(--yolk-soft); --cat-ink: var(--yolk-ink); }
+[data-tone='sky'] { --cat: var(--sky); --cat-soft: var(--sky-soft); --cat-ink: var(--sky-ink); }
+[data-tone='blossom'] { --cat: var(--blossom); --cat-soft: var(--blossom-soft); --cat-ink: var(--blossom-ink); }
 
 :root[data-theme='light'] { color-scheme: light; }
 :root[data-theme='dark'] { color-scheme: dark; }
@@ -348,7 +349,7 @@ small,
   color: var(--muted);
 }
 
-/* Optional colour: .eyebrow--sage|hen|yolk|sky|blossom, or --cat inside a [data-category]. */
+/* Optional colour: .eyebrow--sage|hen|yolk|sky|blossom, or --cat inside a [data-tone]. */
 .eyebrow--sage { color: var(--sage-ink); }
 .eyebrow--hen { color: var(--hen-ink); }
 .eyebrow--yolk { color: var(--yolk-ink); }
@@ -1445,8 +1446,8 @@ small,
   mask-position: 230px 0;
 }
 
-/* Small rounded category label: <span class="cat-chip" data-category="pets">Pets</span>
-   (or inside any [data-category] element). Can be an <a>. */
+/* Small rounded category label: <span class="cat-chip" data-tone="yolk">Pets</span>
+   (or inside any [data-tone] element). Can be an <a>. */
 .cat-chip {
   display: inline-flex;
   align-items: center;

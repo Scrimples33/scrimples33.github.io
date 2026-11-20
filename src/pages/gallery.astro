@@ -8,13 +8,30 @@ import Sprig from '../components/illustrations/Sprig.astro';
 import Flower from '../components/illustrations/Flower.astro';
 import Egg from '../components/illustrations/Egg.astro';
 import Feather from '../components/illustrations/Feather.astro';
+import Leaf from '../components/illustrations/Leaf.astro';
 import { withBase } from '../lib/url';
-import { getArtworksByCategory } from '../lib/content';
+import { getArtworksByTag, type Artwork } from '../lib/content';
 
-const sections = await getArtworksByCategory();
-// Lightbox order follows the page: category by category, newest first within each.
-const ordered = sections.flatMap((s) => s.artworks);
+// One section (and tab) per tag that has at least one artwork, in the order of the tag list.
+// A picture with several tags appears in each of their sections.
+const sections = await getArtworksByTag();
+
+// Lightbox order follows the page, but each artwork only once (its first appearance).
+const firstSection = new Map<string, string>();
+const ordered: Artwork[] = [];
+for (const s of sections) {
+  for (const a of s.artworks) {
+    if (!firstSection.has(a.id)) {
+      firstSection.set(a.id, s.id);
+      ordered.push(a);
+    }
+  }
+}
 const total = ordered.length;
+
+// 'Botanical, portraits, pets and wildlife' from the tag names.
+const names = sections.map((s, i) => (i === 0 ? s.label : s.label.toLowerCase()));
+const tagList = names.length < 2 ? names.join('') : names.slice(0, -1).join(', ') + ' and ' + names.at(-1);
 
 // Structured data: each artwork described for search engines.
 const artist = { '@type': 'Person', name: 'Anne Williamson', url: 'https://annewilliamson.art/' };
@@ -48,7 +65,7 @@ const leopard = ordered.find((a) => a.id === 'leopard') ?? ordered[0];
 
 <BaseLayout
   title="Gallery"
-  description="Colour pencil and watercolour artwork by Anne Williamson: botanical, portraits, pets and wildlife."
+  description={`Colour pencil and watercolour artwork by Anne Williamson: ${tagList.toLowerCase()}.`}
   image={leopard?.data.image}
   imageAlt={leopard?.data.imageAlt}
   jsonLd={artworksLd}
@@ -57,7 +74,7 @@ const leopard = ordered.find((a) => a.id === 'leopard') ?? ordered[0];
     <header class="container gallery-head">
       <h1>Gallery</h1>
       <p class="lede">
-        Botanical, portraits, pets and wildlife, in colour pencil and watercolour. Choose any piece to see it larger.
+        {tagList}, in colour pencil and watercolour. Choose any piece to see it larger.
       </p>
     </header>
 
@@ -72,7 +89,7 @@ const leopard = ordered.find((a) => a.id === 'leopard') ?? ordered[0];
           {
             sections.map((s) => (
               <li>
-                <a href={`#${s.id}`} data-subnav-link={s.id} data-category={s.id}>
+                <a href={`#${s.id}`} data-subnav-link={s.id} data-tone={s.tone}>
                   {s.label}{' '}
                   <span class="subnav__count">
                     <span class="visually-hidden">(</span>
@@ -90,15 +107,16 @@ const leopard = ordered.find((a) => a.id === 'leopard') ?? ordered[0];
     <div class="container gallery-body">
       {
         sections.map((s) => (
-          <section class="gallery-section" id={s.id} aria-labelledby={`h-${s.id}`} data-gallery-section data-category={s.id}>
+          <section class="gallery-section" id={s.id} aria-labelledby={`h-${s.id}`} data-gallery-section data-tone={s.tone}>
             <div class="gallery-section__head">
               <SectionHead title={s.label} id={`h-${s.id}`} />
-              {/* One small line drawing per category, in that category's colour (decorative). */}
+              {/* One small line drawing per tag, chosen by the tag's colour (decorative). */}
               <span class="gallery-section__motif" aria-hidden="true">
-                {s.id === 'botanical' && <Sprig size={34} />}
-                {s.id === 'portraits' && <Flower size={44} stem />}
-                {s.id === 'pets' && <Egg size={34} tone="cream" tilt={-8} />}
-                {s.id === 'wildlife' && <Feather size={22} tilt={14} />}
+                {s.tone === 'sage' && <Sprig size={34} />}
+                {s.tone === 'blossom' && <Flower size={44} stem />}
+                {s.tone === 'yolk' && <Egg size={34} tone="cream" tilt={-8} />}
+                {s.tone === 'hen' && <Feather size={22} tilt={14} />}
+                {s.tone === 'sky' && <Leaf size={30} tone="sky" tilt={-20} />}
               </span>
             </div>
             {s.artworks.length === 0 ? (
@@ -115,7 +133,7 @@ const leopard = ordered.find((a) => a.id === 'leopard') ?? ordered[0];
                     <a
                       class="tile"
                       href={`#art-${artwork.id}`}
-                      id={`art-${artwork.id}`}
+                      id={firstSection.get(artwork.id) === s.id ? `art-${artwork.id}` : undefined}
                       data-lightbox-open={artwork.id}
                       aria-haspopup="dialog"
                     >
@@ -253,7 +271,7 @@ const leopard = ordered.find((a) => a.id === 'leopard') ?? ordered[0];
   }
 
   /* Small egg dot in the category colour (sage for "All"). */
-  .subnav__list a[data-category]::before {
+  .subnav__list a[data-tone]::before {
     content: '';
     flex: none;
     align-self: center;
