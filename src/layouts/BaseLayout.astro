@@ -68,6 +68,13 @@ const canonicalUrl = new URL(Astro.url.pathname, Astro.site);
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonicalUrl} />
     <meta name="twitter:card" content="summary" />
+
+    <!-- Visitor stats (GoatCounter: no cookies, no personal data). -->
+    <script
+      is:inline
+      data-goatcounter="https://annewilliamson.goatcounter.com/count"
+      async
+      src="https://gc.zgo.at/count.js"></script>
     <slot name="head" />
   </head>
   <body id="top">
